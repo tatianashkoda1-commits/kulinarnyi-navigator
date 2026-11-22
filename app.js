@@ -19,7 +19,7 @@ const VIDEO_CATS = { cook: [["Колбасы и мясные деликатес�
 
 let S = load(), D = { books: [], recipes: [] }, F = {}, R = {}, dl = {};
 function load() { try { return Object.assign(def(), JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (_) { return def(); } }
-function def() { return { plan: "plus", main: "cook", tab: "cook", saved: {}, bm: [], notes: {}, menus: [], shopDone: {}, chat: [], wall: [] }; }
+function def() { return { plan: "plus", main: "cook", tab: "cook", saved: {}, bm: [], notes: {}, menus: [], shopDone: {}, chat: [], wall: [], cooked: {} }; }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (_) { toast("Память телефона заполнена"); } }
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -93,7 +93,7 @@ function wireCards() {
   $("#view").querySelectorAll("[data-add]").forEach(b => b.onclick = e => { e.preventDefault(); addToMenu(b.dataset.add); });
 }
 function rcard(r) {
-  return `<div class="book"><a class="cv" href="#r/${r.id}"><img src="${r.img}" alt="" loading="lazy"><div class="bt"><span class="kk">${esc(r.dish)}</span><b>${esc(r.title)}</b><small>${r.steps} шагов с видео</small></div></a>
+  return `<div class="book"><a class="cv" href="#r/${r.id}"><img src="${r.img}" alt="" loading="lazy"><div class="bt"><span class="kk">${esc(r.dish)}</span><b>${esc(r.title)}</b><small>${r.steps} шагов с видео${cookLog(r.id).length ? ` · <span class="ck">✓ ${cookLog(r.id).length}</span>` : ""}</small></div></a>
     <div class="ra"><button data-bm="${r.id}" aria-label="Закладка">${S.bm.includes(r.id) ? "★" : "☆"}</button><button data-add="${r.id}">+ В мою книгу</button></div></div>`;
 }
 function dlBtn(b) {
@@ -107,6 +107,22 @@ function addToMenu(id) {
   $("#sheet").querySelector("[data-new]").onclick = () => { const t = prompt("Название книги", "Мой новогодний стол"); if (!t) return; const nid = newMenu(t); S.menus.find(x => x.id === nid).items.push({ id, day: dayOf(R[id]) }); save(); closeSheet(); toast("Книга «" + t + "» создана"); };
 }
 const assets = r => [r.img, ...r.srows.map(s => s.v).filter(Boolean)];
+const pl = (n, a, b, c) => n % 10 === 1 && n % 100 !== 11 ? a : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? b : c;
+const cookLog = id => (S.cooked = S.cooked || {})[id] || [];
+const fmtDate = d => new Date(d).toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+const stars = n => "★".repeat(n) + "☆".repeat(5 - n);
+function avgStars(log) { const xs = log.filter(x => x.s); return xs.length ? (xs.reduce((a, x) => a + x.s, 0) / xs.length) : 0; }
+function cookSheet(id, after) {
+  let st = 0;
+  sheet(`<h3>Я приготовила: ${esc(R[id].title)}</h3><p class="note">Как получилось в этот раз?</p>
+    <div class="starpick">${[1, 2, 3, 4, 5].map(n => `<button data-s="${n}" aria-label="${n} из 5">☆</button>`).join("")}</div>
+    <textarea id="cn" placeholder="Заметка к этому разу: меньше сахара, гости просили добавки…"></textarea>
+    <button class="btn" id="csave" style="width:100%;margin-top:10px">Записать в дневник</button>`);
+  const paint = () => $("#sheet").querySelectorAll("[data-s]").forEach(b => { b.textContent = +b.dataset.s <= st ? "★" : "☆"; b.classList.toggle("on", +b.dataset.s <= st); });
+  $("#sheet").querySelectorAll("[data-s]").forEach(b => b.onclick = () => { st = +b.dataset.s; paint(); });
+  $("#csave").onclick = () => { (S.cooked[id] = cookLog(id)).push({ d: Date.now(), s: st, n: $("#cn").value.trim() }); save(); closeSheet();
+    const k = cookLog(id).length; toast(k >= 3 ? "Записано! Это уже ваше любимое блюдо ❤" : "Записано в кулинарный дневник"); after && after(); };
+}
 function vRecipe(id) {
   const r = R[id]; if (!r) { location.hash = "#shelves"; return; }
   const b = bookOf(r.book), sib = D.recipes.filter(x => x.book === r.book), i = sib.indexOf(r);
@@ -126,6 +142,7 @@ function vRecipe(id) {
     ${r.tips.length ? `<h2>Секреты шефа</h2><div class="tips">${r.tips.map(t => `<div class="tip"><b>${esc(t.b)}</b><p>${esc(t.t)}</p>${t.q ? `<q>${esc(t.q)}</q>` : ""}</div>`).join("")}</div>` : ""}
     ${r.qa.length ? `<h2>Шеф уточняет</h2><div class="qa">${r.qa.map(x => `<details><summary>${esc(x.q)}</summary><p>${esc(x.a)}</p></details>`).join("")}</div>` : ""}
     <h2>Готовое блюдо</h2><figure class="final"><img src="${r.img}" alt="${esc(r.title)} — готовое блюдо" loading="lazy"><figcaption>${esc(r.title)} · ${esc(b.who)}</figcaption></figure>
+    <div class="cookbox" id="cookbox"></div>
     <div class="nav2">${i > 0 ? `<a href="#r/${sib[i - 1].id}">← ${esc(sib[i - 1].title)}</a>` : "<span></span>"}${i < sib.length - 1 ? `<a href="#r/${sib[i + 1].id}">${esc(sib[i + 1].title)} →</a>` : ""}</div>`;
   $("#view").innerHTML = h;
   // видео шагов: грузятся и играют, когда шаг на экране
@@ -139,6 +156,13 @@ function vRecipe(id) {
     <div class="opt"><button id="buy" class="on"><b>Купить видеоверсию</b><small>Цена уточняется · в прототипе не работает</small></button><button id="toclub"><b>Все видео — в клубе</b><small>2 000+ уроков и ответы шефов</small></button></div>`);
     $("#buy").onclick = () => { closeSheet(); toast("В прототипе покупка не подключена"); }; $("#toclub").onclick = () => { closeSheet(); location.hash = "#club"; }; };
   $("#sv").onclick = () => saveAssets("r:" + id, assets(r));
+  const paintCook = () => { const log = cookLog(id), a = avgStars(log);
+    $("#cookbox").innerHTML = `<div class="card"><div class="row" style="justify-content:space-between"><div><b>${log.length ? `Вы готовили ${log.length} ${log.length % 10 === 1 && log.length % 100 !== 11 ? "раз" : [2, 3, 4].includes(log.length % 10) && ![12, 13, 14].includes(log.length % 100) ? "раза" : "раз"}` : "Готовили это блюдо?"}</b>
+      ${log.length >= 3 ? ` <span class="pill">❤ Моё любимое</span>` : ""}<br><span class="note">${log.length ? `последний раз ${fmtDate(log[log.length - 1].d)}${a ? ` · моя оценка ${a.toFixed(1).replace(".", ",")} ★` : ""}` : "Отметьте, как получилось — это ваш кулинарный дневник"}</span></div>
+      <button class="btn sm" id="cookbtn">✓ Я приготовила</button></div>
+      ${log.length ? `<div class="hist">${log.slice().reverse().map(x => `<div><span>${fmtDate(x.d)}</span><span class="st">${x.s ? stars(x.s) : ""}</span>${x.n ? `<p>${esc(x.n)}</p>` : ""}</div>`).join("")}</div>` : ""}</div>`;
+    $("#cookbtn").onclick = () => cookSheet(id, paintCook); };
+  paintCook();
 }
 function vCollection(slug) {
   const b = bookOf(slug); if (!b) { location.hash = "#shelves"; return; }
@@ -208,7 +232,7 @@ function vChat() {
 
 function vMy(sub) {
   sub = sub || "books";
-  let h = `<h1>Моя полка</h1><div class="seg">${[["books", "Скачано"], ["menus", "Мои книги"], ["bm", "Закладки"], ["notes", "Заметки"]].map(([k, t]) => `<a href="#my/${k}" class="${k === sub ? "on" : ""}" style="text-decoration:none;display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:20px;font-weight:700;${k === sub ? "background:var(--terra);color:#fff" : "color:var(--ink2)"}">${t}</a>`).join("")}</div>`;
+  let h = `<h1>Моя полка</h1><div class="seg">${[["books", "Скачано"], ["menus", "Мои книги"], ["bm", "Закладки"], ["notes", "Дневник"]].map(([k, t]) => `<a href="#my/${k}" class="${k === sub ? "on" : ""}" style="text-decoration:none;display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:20px;font-weight:700;${k === sub ? "background:var(--terra);color:#fff" : "color:var(--ink2)"}">${t}</a>`).join("")}</div>`;
   if (sub === "books") {
     const rs = Object.keys(S.saved).filter(k => k.startsWith("r:")).map(k => R[k.slice(2)]).filter(Boolean);
     const cs = Object.keys(S.saved).filter(k => k.startsWith("c:")).map(k => bookOf(k.slice(2))).filter(Boolean);
@@ -228,8 +252,12 @@ function vMy(sub) {
     h += rs.length ? `<div class="list">${rs.map(r => li(r, `<button class="x" data-unbm="${r.id}" aria-label="Убрать">×</button>`)).join("")}</div>` : `<div class="empty">Закладок нет. В книге нажмите «☆ Закладка» у рецепта.</div>`;
   }
   if (sub === "notes") {
+    const ck = Object.entries(S.cooked || {}).filter(([id, l]) => l.length && R[id]).sort((a, b) => b[1][b[1].length - 1].d - a[1][a[1].length - 1].d);
+    const total = ck.reduce((a, [, l]) => a + l.length, 0);
+    h += `<div class="card" style="margin-bottom:12px"><b>Мой кулинарный дневник</b><br><span class="note">${total ? `Приготовлено ${total} ${pl(total, "раз", "раза", "раз")} · ${ck.length} ${pl(ck.length, "блюдо", "блюда", "блюд")} · любимых: ${ck.filter(([, l]) => l.length >= 3).length}` : "Пока пусто. В конце любого рецепта есть кнопка «✓ Я приготовила»."}</span></div>`;
+    if (ck.length) h += `<h2>Я готовила</h2><div class="list">${ck.map(([id, l]) => li(R[id], l.length >= 3 ? `<span class="pill">❤</span>` : "", `${l.length} × · последний раз ${fmtDate(l[l.length - 1].d)}${avgStars(l) ? " · " + avgStars(l).toFixed(1).replace(".", ",") + " ★" : ""}`)).join("")}</div>`;
     const ns = Object.entries(S.notes).filter(([, t]) => t);
-    h += ns.length ? `<div class="list">${ns.map(([id, t]) => R[id] ? li(R[id], "", esc(t)) : "").join("")}</div>` : `<div class="empty">Заметок нет. В книге у рецепта есть кнопка «✎ Заметка»: «сахара меньше», «в моей духовке 35 минут».</div>`;
+    if (ns.length) h += `<h2>Мои заметки</h2><div class="list">${ns.map(([id, t]) => R[id] ? li(R[id], "", esc(t)) : "").join("")}</div>`;
   }
   $("#view").innerHTML = h;
   const up = $("#up"); if (up) up.onclick = () => $("#planBtn").click();
@@ -358,7 +386,7 @@ addEventListener("hashchange", route);
   if (/[?&]demo/.test(location.search) && !S.menus.length) {   // ?demo — заполненный пример для показа
     const pick = ["novyi-god", "kotlety", "rulety", "lenivaya", "rozhdestvo"].map(b => D.recipes.find(r => r.book === b && r.ings.length)).filter(Boolean);
     S.menus.push({ id: "demo", title: "Новогодний стол 2027", items: pick.map(r => ({ id: r.id, day: dayOf(r) })) });
-    S.bm = pick.slice(0, 2).map(r => r.id); S.notes[pick[0].id] = "Делаю за час до гостей, сыр нарезаю кубиками"; save();
+    S.bm = pick.slice(0, 2).map(r => r.id); S.notes[pick[0].id] = "Делаю за час до гостей, сыр нарезаю кубиками"; S.cooked = { [pick[1].id]: [{ d: Date.now() - 864e5 * 40, s: 4, n: "" }, { d: Date.now() - 864e5 * 12, s: 5, n: "Взяла больше лука — вышло сочнее" }, { d: Date.now() - 864e5 * 2, s: 5, n: "" }] }; save();
   }
   if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(() => {});
   route();

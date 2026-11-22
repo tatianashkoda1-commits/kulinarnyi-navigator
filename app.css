@@ -194,3 +194,13 @@ select,textarea,input{color:var(--ink)}
 .nav-bar button:last-child{background:#e8c46a;border-color:#e8c46a;color:#1b120c}
 
 .plancard{margin:0 0 12px}.plancard p{margin:4px 0 10px}
+
+.cookbox{margin:16px 0 0}
+.hist{margin-top:10px;border-top:1px solid var(--line)}
+.hist>div{display:flex;flex-wrap:wrap;gap:4px 12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.hist .st{color:var(--ochre);letter-spacing:1px}
+.hist p{flex-basis:100%;margin:0;color:var(--ink2)}
+.starpick{display:flex;gap:6px;margin:6px 0 10px}
+.starpick button{border:0;background:transparent;font-size:34px;line-height:1;color:var(--mute);padding:2px}
+.starpick button.on{color:var(--ochre)}
+.ck{color:var(--ochre);font-weight:700}
