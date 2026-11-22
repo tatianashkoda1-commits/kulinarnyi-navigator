@@ -113,16 +113,22 @@ const cookLog = id => (S.cooked = S.cooked || {})[id] || [];
 const fmtDate = d => new Date(d).toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
 const stars = n => "★".repeat(n) + "☆".repeat(5 - n);
 function avgStars(log) { const xs = log.filter(x => x.s); return xs.length ? (xs.reduce((a, x) => a + x.s, 0) / xs.length) : 0; }
-function cookSheet(id, after) {
-  let st = 0;
-  sheet(`<h3>Я приготовила: ${esc(R[id].title)}</h3><p class="note">Как получилось в этот раз?</p>
+function cookSheet(id, after, idx) {
+  const log = cookLog(id), ed = idx != null ? log[idx] : null;   // idx — правка уже сделанной записи
+  let st = ed ? ed.s : 0;
+  sheet(`<h3>${ed ? "Запись от " + fmtDate(ed.d) : "Я приготовила: " + esc(R[id].title)}</h3><p class="note">${ed ? "Можно поменять оценку и дописать заметку" : "Как получилось в этот раз?"}</p>
     <div class="starpick">${[1, 2, 3, 4, 5].map(n => `<button data-s="${n}" aria-label="${n} из 5">☆</button>`).join("")}</div>
-    <textarea id="cn" placeholder="Заметка к этому разу: меньше сахара, гости просили добавки…"></textarea>
-    <button class="btn" id="csave" style="width:100%;margin-top:10px">Записать в дневник</button>`);
+    <textarea id="cn" placeholder="Заметка к этому разу: меньше сахара, гости просили добавки…">${ed ? esc(ed.n || "") : ""}</textarea>
+    <button class="btn" id="csave" style="width:100%;margin-top:10px">${ed ? "Сохранить" : "Записать в дневник"}</button>
+    ${ed ? `<button class="btn ghost" id="cdel" style="width:100%;margin-top:8px">Удалить запись</button>` : ""}`);
   const paint = () => $("#sheet").querySelectorAll("[data-s]").forEach(b => { b.textContent = +b.dataset.s <= st ? "★" : "☆"; b.classList.toggle("on", +b.dataset.s <= st); });
-  $("#sheet").querySelectorAll("[data-s]").forEach(b => b.onclick = () => { st = +b.dataset.s; paint(); });
-  $("#csave").onclick = () => { (S.cooked[id] = cookLog(id)).push({ d: Date.now(), s: st, n: $("#cn").value.trim() }); save(); closeSheet();
-    const k = cookLog(id).length; toast(k >= 3 ? "Записано! Это уже ваше любимое блюдо ❤" : "Записано в кулинарный дневник"); after && after(); };
+  paint();
+  $("#sheet").querySelectorAll("[data-s]").forEach(b => b.onclick = () => { st = st === +b.dataset.s ? 0 : +b.dataset.s; paint(); });
+  $("#csave").onclick = () => {
+    if (ed) { ed.s = st; ed.n = $("#cn").value.trim(); save(); closeSheet(); toast("Запись обновлена"); after && after(); return; }
+    (S.cooked[id] = log).push({ d: Date.now(), s: st, n: $("#cn").value.trim() }); save(); closeSheet();
+    toast(log.length >= 3 ? "Записано! Это уже ваше любимое блюдо ❤" : "Записано в кулинарный дневник"); after && after(); };
+  const del = $("#cdel"); if (del) del.onclick = () => { if (!confirm("Удалить эту запись из дневника?")) return; log.splice(idx, 1); S.cooked[id] = log; save(); closeSheet(); toast("Запись удалена"); after && after(); };
 }
 function vRecipe(id) {
   const r = R[id]; if (!r) { location.hash = "#shelves"; return; }
@@ -161,8 +167,9 @@ function vRecipe(id) {
     $("#cookbox").innerHTML = `<div class="card"><div class="row" style="justify-content:space-between"><div><b>${log.length ? `Вы готовили ${log.length} ${log.length % 10 === 1 && log.length % 100 !== 11 ? "раз" : [2, 3, 4].includes(log.length % 10) && ![12, 13, 14].includes(log.length % 100) ? "раза" : "раз"}` : "Готовили это блюдо?"}</b>
       ${log.length >= 3 ? ` <span class="pill">❤ Моё любимое</span>` : ""}<br><span class="note">${log.length ? `последний раз ${fmtDate(log[log.length - 1].d)}${a ? ` · моя оценка ${a.toFixed(1).replace(".", ",")} ★` : ""}` : "Отметьте, как получилось — это ваш кулинарный дневник"}</span></div>
       <button class="btn sm" id="cookbtn">✓ Я приготовила</button></div>
-      ${log.length ? `<div class="hist">${log.slice().reverse().map(x => `<div><span>${fmtDate(x.d)}</span><span class="st">${x.s ? stars(x.s) : ""}</span>${x.n ? `<p>${esc(x.n)}</p>` : ""}</div>`).join("")}</div>` : ""}</div>`;
-    $("#cookbtn").onclick = () => cookSheet(id, paintCook); };
+      ${log.length ? `<div class="hist">${log.map((x, k) => [x, k]).reverse().map(([x, k]) => `<button class="he" data-e="${k}" type="button"><span>${fmtDate(x.d)}</span><span class="st">${x.s ? stars(x.s) : ""}</span><span class="pen">✎</span>${x.n ? `<p>${esc(x.n)}</p>` : `<p class="nn">добавить заметку</p>`}</button>`).join("")}</div>` : ""}</div>`;
+    $("#cookbtn").onclick = () => cookSheet(id, paintCook);
+    $("#cookbox").querySelectorAll("[data-e]").forEach(b => b.onclick = () => cookSheet(id, paintCook, +b.dataset.e)); };
   paintCook();
 }
 function vCollection(slug) {

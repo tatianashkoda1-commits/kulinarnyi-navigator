@@ -224,3 +224,9 @@ select,textarea,input{color:var(--ink)}
 .bkt{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:26px 10px 9px 14px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.85))}
 .bkt b{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font:700 13px/1.1 var(--display);text-transform:uppercase;color:var(--ochre)}
 .bkt small{display:block;font-size:10px;color:#e3d4c2;margin-top:3px}
+
+.hist .he{display:flex;flex-wrap:wrap;gap:4px 12px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);padding:9px 0;font-size:13px}
+.hist .he:hover{background:rgba(232,196,106,.06)}
+.hist .pen{margin-left:auto;color:var(--mute)}
+.hist .he p{flex-basis:100%;margin:0;color:var(--ink2)}
+.hist .he p.nn{color:var(--mute);font-style:italic}
