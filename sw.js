@@ -1,7 +1,7 @@
 // Навигатор: один сервис-воркер на приложение и все книги (основа — сервис-воркер «Моей полки» ХулиФуда).
 // Приложение кешируется при установке; книга — целиком по кнопке «На полку»; видео отдаются из кеша нарезкой 206 (иначе на iPhone офлайн не играет).
-const C = "nav-v5";
-const SHELL = ["./", "index.html", "app.js", "app.css", "inbook.js", "inbook.css", "manifest.webmanifest", "data.json", "files.json", "img/logo.png", "img/logo-light.png", "img/icon-192.png", "img/icon-512.png", "img/wood-back.jpg", "img/wood-plank.jpg", "img/wood-side.jpg"];
+const C = "nav-v6";
+const SHELL = ["./", "index.html", "app.js", "app.css", "inbook.js", "inbook.css", "manifest.webmanifest", "data.json", "files.json", "img/logo.png", "img/logo-light.png", "img/icon-192.png", "img/icon-512.png"];
 self.addEventListener("install", e => { self.skipWaiting(); e.waitUntil(caches.open(C).then(c => c.addAll(SHELL))); });
 self.addEventListener("activate", e => e.waitUntil((async () => { for (const k of await caches.keys()) if (k !== C) await caches.delete(k); await self.clients.claim(); })()));
 const tell = async m => { for (const c of await self.clients.matchAll({ includeUncontrolled: true })) c.postMessage(m); };
