@@ -27,7 +27,7 @@ function toast(t) { const el = $("#toast"); el.textContent = t; el.hidden = fals
 const plan = () => PLANS[S.plan];
 const hasShelf = sh => plan().two || S.main === sh;
 const bookOf = slug => D.books.find(b => b.slug === slug);
-const recUrl = r => `books/${r.book}/#${r.rid}`;
+const recUrl = r => "#r/" + r.id;
 
 function sheet(html) { const s = $("#sheet"); s.innerHTML = `<div class="box">${html}</div>`; s.hidden = false; s.onclick = e => { if (e.target === s) s.hidden = true; }; }
 const closeSheet = () => $("#sheet").hidden = true;
@@ -53,21 +53,21 @@ function vShelves() {
   const list = all.filter(r => (!f.dish || r.dish === f.dish) && (!f.theme || r.themes.includes(f.theme)) &&
     (!q || r.title.toLowerCase().includes(q) || r.ings.some(g => g.n.toLowerCase().includes(q))));
   const cols = D.books.filter(b => D.recipes.some(r => r.book === b.slug && r.shelf === sh));
-  let h = `<h1>Полки</h1><p class="sub">Вся библиотека рецептов шефов. Найдите блюдо фильтром или поиском, а книги — это подборки поверх библиотеки.</p>
-    <div class="seg">${Object.entries(SHELF).map(([k, t]) => `<button data-sh="${k}" class="${k === sh ? "on" : ""}">${t} · ${D.recipes.filter(r => r.shelf === k).length}</button>`).join("")}</div>`;
-  if (!own) h += `<div class="lock"><b>Эта полка не входит в ваш тариф</b>Вторая полка — ещё 690 ₽ в месяц, фишки повторно не оплачиваются. <button class="btn sm" id="addShelf" style="margin-top:8px">Посмотреть тарифы</button></div>`;
   const m = sh === "cook" ? bookOf("novyi-god") : bookOf("rozhdestvo");
-  if (m) h += `<a class="card month" href="books/${m.slug}/"><img src="img/${m.slug}.jpg" alt=""><div class="in"><span class="pill">Подборка месяца</span><h2 style="margin:8px 0 2px">${esc(m.title)}</h2><span class="note">${esc(m.who)} · ${m.n} рецептов</span></div></a>`;
-  h += `<h2>Подборки шефов</h2><div class="hs">${cols.map(b => `<div class="col"><a href="books/${b.slug}/"><img src="img/${b.slug}.jpg" alt="" loading="lazy"><b>${esc(b.title)}</b><small>${b.n} рецептов</small></a><div data-st="${b.slug}">${dlBtn(b).replace(/ · \d+ МБ/, "")}</div></div>`).join("")}</div>`;
   const mine = S.menus.filter(x => x.items.length);
-  if (mine.length) h += `<h2>Мои сборники</h2><div class="hs">${mine.map(x => { const r0 = R[x.items[0].id]; return `<div class="col"><a href="#menu/${x.id}"><img src="${r0 ? r0.img : ""}" alt=""><b>${esc(x.title)}</b><small>${x.items.length} блюд</small></a></div>`; }).join("")}</div>`;
-  h += `<h2>Все рецепты</h2>
-    <input class="search" id="q" type="search" placeholder="Блюдо или продукт: курица, творог, штоллен…" value="${esc(f.q)}" aria-label="Поиск">
-    <div class="fl"><span>Тип блюда</span><div class="chips">${["", ...dishes].map(d => `<button class="chip ${f.dish === d ? "on" : ""}" data-dish="${esc(d)}">${d || "Все"}</button>`).join("")}</div></div>
-    <div class="fl"><span>Повод</span><div class="chips">${["", ...themes].map(d => `<button class="chip ${f.theme === d ? "on" : ""}" data-theme="${esc(d)}">${d || "Любой"}</button>`).join("")}</div></div>
-    <p class="note">Найдено: ${list.length}</p>
-    <div class="grid">${list.slice(0, f.n).map(rcard).join("")}</div>
+  let h = `<div class="hero"><h1>Кулинарная книга</h1><p class="sub">${D.recipes.length} рецептов шефов с видео каждого шага. Ищите по блюду или продукту.</p>
+    <div class="seg">${Object.entries(SHELF).map(([k, t]) => `<button data-sh="${k}" class="${k === sh ? "on" : ""}">${t} · ${D.recipes.filter(r => r.shelf === k).length}</button>`).join("")}</div>
+    <input class="search" id="q" type="search" placeholder="Что приготовить? курица, творог, штоллен…" value="${esc(f.q)}" aria-label="Поиск по рецептам">
+    <div class="fl"><div class="chips">${["", ...dishes].map(d => `<button class="chip ${f.dish === d ? "on" : ""}" data-dish="${esc(d)}">${d || "Все блюда"}</button>`).join("")}</div></div>
+    <div class="fl"><div class="chips">${["", ...themes].map(d => `<button class="chip t ${f.theme === d ? "on" : ""}" data-theme="${esc(d)}">${d || "Любой повод"}</button>`).join("")}</div></div></div>`;
+  if (!own) h += `<div class="lock"><b>Эта полка не входит в ваш тариф</b>Вторая полка — ещё 690 ₽ в месяц, фишки повторно не оплачиваются. <button class="btn sm" id="addShelf" style="margin-top:8px">Посмотреть тарифы</button></div>`;
+  h += `<p class="note">${q || f.dish || f.theme ? "Найдено" : "Все рецепты"}: ${list.length}</p>
+    <div class="grid">${list.slice(0, f.n).map(rcard).join("") || `<div class="empty" style="grid-column:1/-1">Ничего не нашлось. Попробуйте другое слово или сбросьте фильтры.</div>`}</div>
     ${list.length > f.n ? `<div class="row" style="justify-content:center;margin-top:12px"><button class="btn ghost" id="more">Показать ещё</button></div>` : ""}
+    <h2 style="margin-top:30px">Подборки</h2>
+    ${m ? `<a class="month" href="#c/${m.slug}"><img src="img/${m.slug}.jpg" alt=""><div><span class="pill">Подборка месяца</span><b>${esc(m.title)}</b><small>${esc(m.who)} · ${m.n} рецептов</small></div></a>` : ""}
+    <div class="hs">${cols.filter(b => !m || b.slug !== m.slug).map(b => `<a class="col" href="#c/${b.slug}"><img src="img/${b.slug}.jpg" alt="" loading="lazy"><b>${esc(b.title)}</b><small>${b.n} рецептов</small></a>`).join("")}</div>
+    ${mine.length ? `<h2>Мои сборники</h2><div class="hs">${mine.map(x => { const r0 = R[x.items[0].id]; return `<a class="col" href="#menu/${x.id}"><img src="${r0 ? r0.img : ""}" alt=""><b>${esc(x.title)}</b><small>${x.items.length} блюд</small></a>`; }).join("")}</div>` : ""}
     ${sh === "pastry" ? `<h2>Готовится из архива</h2><div class="list">${SOON_PASTRY.map(([t, n]) => `<div class="li soon"><div class="t"><b>${t}</b><small>${n} рецептов переносятся из архива клуба</small></div><span class="pill o">Скоро</span></div>`).join("")}</div>` : ""}
     <p class="proto">Прототип Кулинарного навигатора · данные хранятся только в этом телефоне</p>`;
   $("#view").innerHTML = h;
@@ -77,28 +77,78 @@ function vShelves() {
   const qi = $("#q"); let tm; qi.oninput = () => { clearTimeout(tm); tm = setTimeout(() => { f.q = qi.value; f.n = 24; save(); const pos = qi.selectionStart; vShelves(); const n = $("#q"); n.focus(); n.setSelectionRange(pos, pos); }, 300); };
   const mo = $("#more"); if (mo) mo.onclick = () => { f.n += 24; save(); vShelves(); };
   const a = $("#addShelf"); if (a) a.onclick = () => $("#planBtn").click();
-  $("#view").querySelectorAll("[data-dl]").forEach(b => b.onclick = () => saveBook(b.dataset.dl));
+  wireCards();
+}
+function wireCards() {
   $("#view").querySelectorAll("[data-bm]").forEach(b => b.onclick = e => { e.preventDefault(); const id = b.dataset.bm; S.bm = S.bm.includes(id) ? S.bm.filter(x => x !== id) : [...S.bm, id]; save(); b.textContent = S.bm.includes(id) ? "★" : "☆"; toast(S.bm.includes(id) ? "В закладках" : "Убрано из закладок"); });
   $("#view").querySelectorAll("[data-add]").forEach(b => b.onclick = e => { e.preventDefault(); addToMenu(b.dataset.add); });
-  refreshStatus();
 }
 function rcard(r) {
-  return `<div class="book"><a class="cv" href="${recUrl(r)}"><img src="${r.img}" alt="" loading="lazy"><div class="bt"><b>${esc(r.title)}</b><small>${esc(r.dish)} · ${esc(bookOf(r.book).title)}</small></div></a>
+  return `<div class="book"><a class="cv" href="#r/${r.id}"><img src="${r.img}" alt="" loading="lazy"><div class="bt"><span class="kk">${esc(r.dish)}</span><b>${esc(r.title)}</b><small>${r.steps} шагов с видео</small></div></a>
     <div class="ra"><button data-bm="${r.id}" aria-label="Закладка">${S.bm.includes(r.id) ? "★" : "☆"}</button><button data-add="${r.id}">+ В сборник</button></div></div>`;
 }
 function dlBtn(b) {
-  return S.saved[b.slug] ? (dl[b.slug] && dl[b.slug] < 100 ? `<button class="dl" disabled>Загрузка ${dl[b.slug]}%</button>` : `<button class="dl ok" disabled>✓ На полке</button>`)
-    : `<button class="dl" data-dl="${b.slug}">↓ На полку · ${b.mb} МБ</button>`;
+  return S.saved[b.slug] ? (dl[b.slug] && dl[b.slug] < 100 ? `<button class="dl" disabled>Загрузка ${dl[b.slug]}%</button>` : `<button class="dl ok" disabled>✓ Сохранено без интернета</button>`)
+    : `<button class="dl" data-dl="${b.slug}">↓ Сохранить без интернета</button>`;
 }
 function addToMenu(id) {
   if (!plan().plus) { toast("Свои сборники и меню — в тарифе с фишками"); return; }
   sheet(`<h3>Добавить «${esc(R[id].title)}»</h3><div class="opt">${S.menus.map(m => `<button data-m="${m.id}"><b>${esc(m.title)}</b><small>${m.items.length} блюд</small></button>`).join("")}<button data-new="1" class="on"><b>+ Новый сборник или меню</b></button></div>`);
-  $("#sheet").querySelectorAll("[data-m]").forEach(b => b.onclick = () => { const m = S.menus.find(x => x.id === b.dataset.m); if (!m.items.some(i => i.id === id)) m.items.push({ id, day: "d0" }); save(); closeSheet(); toast("Добавлено в «" + m.title + "»"); route(); });
-  $("#sheet").querySelector("[data-new]").onclick = () => { const t = prompt("Название", "Мой новогодний стол"); if (!t) return; const nid = newMenu(t); S.menus.find(x => x.id === nid).items.push({ id, day: "d0" }); save(); closeSheet(); toast("Сборник «" + t + "» создан"); route(); };
+  $("#sheet").querySelectorAll("[data-m]").forEach(b => b.onclick = () => { const m = S.menus.find(x => x.id === b.dataset.m); if (!m.items.some(i => i.id === id)) m.items.push({ id, day: "d0" }); save(); closeSheet(); toast("Добавлено в «" + m.title + "»"); });
+  $("#sheet").querySelector("[data-new]").onclick = () => { const t = prompt("Название", "Мой новогодний стол"); if (!t) return; const nid = newMenu(t); S.menus.find(x => x.id === nid).items.push({ id, day: "d0" }); save(); closeSheet(); toast("Сборник «" + t + "» создан"); };
+}
+const assets = r => [r.img, ...r.srows.map(s => s.v).filter(Boolean)];
+function vRecipe(id) {
+  const r = R[id]; if (!r) { location.hash = "#shelves"; return; }
+  const b = bookOf(r.book), sib = D.recipes.filter(x => x.book === r.book), i = sib.indexOf(r);
+  const own = hasShelf(r.shelf), saved = S.saved["r:" + id];
+  let groups = {}; r.ings.forEach(g => (groups[g.g || ""] = groups[g.g || ""] || []).push(g));
+  let h = `<a href="#shelves" class="back">← Кулинарная книга</a>
+    <div class="rh"><img src="${r.img}" alt=""><div class="rt"><span class="kk">${esc(r.dish)} · ${esc(r.kick)}</span><h1>${esc(r.title)}</h1>
+    <a class="from" href="#c/${b.slug}">Из подборки «${esc(b.title)}» · ${esc(b.who)}</a></div></div>
+    ${!own ? `<div class="lock"><b>Этот рецепт на другой полке</b>Вторая полка — ещё 690 ₽ в месяц. В прототипе рецепт открыт, чтобы посмотреть.</div>` : ""}
+    <div class="acts"><button id="bm">${S.bm.includes(id) ? "★ В закладках" : "☆ Закладка"}</button><button id="add">+ В сборник</button><button id="nt">✎ Заметка</button><button id="vid">▶ Видеоурок шефа</button>
+      <button id="sv" class="${saved ? "ok" : ""}">${saved ? "✓ Без интернета" : "↓ Сохранить"}</button></div>
+    <div id="notebox" class="notebox" ${S.notes[id] ? "" : "hidden"}><textarea id="ta" placeholder="Моя заметка: сахара меньше, в моей духовке 35 минут">${esc(S.notes[id] || "")}</textarea><small>Видна только вам</small></div>
+    ${r.intro ? `<p class="intro">${esc(r.intro)}</p>` : ""}
+    ${r.badges.length ? `<div class="badges">${r.badges.map(x => `<span>${esc(x)}</span>`).join("")}</div>` : ""}
+    <div class="rcols"><aside class="ingr"><h2>Ингредиенты</h2>${Object.entries(groups).map(([g, xs]) => `${g ? `<div class="grp">${esc(g)}</div>` : ""}<table>${xs.map(x => `<tr><td>${esc(x.n)}</td><td>${esc(x.q)}</td></tr>`).join("")}</table>`).join("")}
+      ${r.tools ? `<p class="note"><b>Инвентарь:</b> ${esc(r.tools)}</p>` : ""}</aside>
+    <section class="steps"><h2>Как готовить</h2>${r.srows.map((s, k) => `<div class="step"><div class="clip">${s.v ? `<video data-src="${s.v}" muted loop playsinline preload="none"></video>` : ""}<span class="n">${k + 1}</span></div><div class="tx"><b>${esc(s.h)}</b><p>${esc(s.p)}</p></div></div>`).join("")}</section></div>
+    ${r.tips.length ? `<h2>Секреты шефа</h2><div class="tips">${r.tips.map(t => `<div class="tip"><b>${esc(t.b)}</b><p>${esc(t.t)}</p>${t.q ? `<q>${esc(t.q)}</q>` : ""}</div>`).join("")}</div>` : ""}
+    ${r.qa.length ? `<h2>Шеф уточняет</h2><div class="qa">${r.qa.map(x => `<details><summary>${esc(x.q)}</summary><p>${esc(x.a)}</p></details>`).join("")}</div>` : ""}
+    <div class="nav2">${i > 0 ? `<a href="#r/${sib[i - 1].id}">← ${esc(sib[i - 1].title)}</a>` : "<span></span>"}${i < sib.length - 1 ? `<a href="#r/${sib[i + 1].id}">${esc(sib[i + 1].title)} →</a>` : ""}</div>`;
+  $("#view").innerHTML = h;
+  // видео шагов: грузятся и играют, когда шаг на экране
+  const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting) { if (!v.src) v.src = v.dataset.src; v.play().catch(() => {}); } else v.pause(); }), { rootMargin: "200px" });
+  $("#view").querySelectorAll("video[data-src]").forEach(v => io.observe(v));
+  $("#bm").onclick = () => { S.bm = S.bm.includes(id) ? S.bm.filter(x => x !== id) : [...S.bm, id]; save(); $("#bm").textContent = S.bm.includes(id) ? "★ В закладках" : "☆ Закладка"; };
+  $("#add").onclick = () => addToMenu(id);
+  $("#nt").onclick = () => { const nb = $("#notebox"); nb.hidden = !nb.hidden; if (!nb.hidden) $("#ta").focus(); };
+  $("#ta").oninput = () => { S.notes[id] = $("#ta").value; save(); };
+  $("#vid").onclick = () => { sheet(`<h3>Видеоурок «${esc(r.title)}»</h3><p>Полный урок шефа именно по этому блюду: как готовит, на что обратить внимание, ответы на частые вопросы.</p>
+    <div class="opt"><button id="buy" class="on"><b>Купить урок</b><small>Цена уточняется. В прототипе покупка не работает</small></button><button id="toclub"><b>Все видеоуроки и шефы — в клубе</b><small>2 000+ уроков, обратная связь, розыгрыши</small></button></div>`);
+    $("#buy").onclick = () => { closeSheet(); toast("В прототипе покупка не подключена"); }; $("#toclub").onclick = () => { closeSheet(); location.hash = "#club"; }; };
+  $("#sv").onclick = () => saveAssets("r:" + id, assets(r));
+}
+function vCollection(slug) {
+  const b = bookOf(slug); if (!b) { location.hash = "#shelves"; return; }
+  const rs = D.recipes.filter(r => r.book === slug), key = "c:" + slug, saved = S.saved[key];
+  $("#view").innerHTML = `<a href="#shelves" class="back">← Кулинарная книга</a>
+    <div class="rh"><img src="img/${slug}.jpg" alt=""><div class="rt"><span class="kk">Подборка шефа</span><h1>${esc(b.title)}</h1><span class="from">${esc(b.who)} · ${rs.length} рецептов</span></div></div>
+    <div class="acts"><button id="sv" class="${saved ? "ok" : ""}">${saved ? "✓ Вся подборка без интернета" : "↓ Сохранить подборку без интернета · " + b.mb + " МБ"}</button></div>
+    <div class="grid">${rs.map(rcard).join("")}</div>`;
+  wireCards();
+  $("#sv").onclick = () => saveAssets(key, [`img/${slug}.jpg`, ...rs.flatMap(assets)]);
+}
+async function saveAssets(key, urls) {
+  const sw = await swReady(); if (!sw) { toast("Сохранение без интернета работает на опубликованной версии"); return; }
+  S.saved[key] = true; save(); toast("Сохраняю в телефон…");
+  sw.postMessage({ type: "book", slug: key, urls });
 }
 
 function card(b) {
-  return `<div class="book"><a class="cv" href="books/${b.slug}/"><img src="img/${b.slug}.jpg" alt="" loading="lazy"><div class="bt"><b>${esc(b.title)}</b><small>${esc(b.who)} · ${b.n} рецептов</small></div></a><div class="st" data-st="${b.slug}">${dlBtn(b)}</div></div>`;
+  return `<div class="book"><a class="cv" href="#c/${b.slug}"><img src="img/${b.slug}.jpg" alt="" loading="lazy"><div class="bt"><b>${esc(b.title)}</b><small>${esc(b.who)} · ${b.n} рецептов</small></div></a><div class="st" data-st="${b.slug}">${dlBtn(b)}</div></div>`;
 }
 
 function vBuilders() {
@@ -151,8 +201,11 @@ function vMy(sub) {
   sub = sub || "books";
   let h = `<h1>Моя полка</h1><div class="seg">${[["books", "Скачано"], ["menus", "Сборники"], ["bm", "Закладки"], ["notes", "Заметки"]].map(([k, t]) => `<a href="#my/${k}" class="${k === sub ? "on" : ""}" style="text-decoration:none;display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:20px;font-weight:700;${k === sub ? "background:var(--terra);color:#fff" : "color:var(--ink2)"}">${t}</a>`).join("")}</div>`;
   if (sub === "books") {
-    const mine = D.books.filter(b => S.saved[b.slug]);
-    h += mine.length ? `<div class="grid">${mine.map(card).join("")}</div>` : `<div class="empty">Пока пусто. На вкладке «Полки» нажмите «На полку» у книги — она сохранится в телефоне и будет работать без интернета.</div>`;
+    const rs = Object.keys(S.saved).filter(k => k.startsWith("r:")).map(k => R[k.slice(2)]).filter(Boolean);
+    const cs = Object.keys(S.saved).filter(k => k.startsWith("c:")).map(k => bookOf(k.slice(2))).filter(Boolean);
+    h += (cs.length ? `<h2>Подборки</h2><div class="hs">${cs.map(b => `<a class="col" href="#c/${b.slug}"><img src="img/${b.slug}.jpg" alt=""><b>${esc(b.title)}</b><small>${b.n} рецептов</small></a>`).join("")}</div>` : "")
+      + (rs.length ? `<h2>Рецепты</h2><div class="list">${rs.map(r => li(r)).join("")}</div>` : "")
+      || `<div class="empty">Пока пусто. Откройте рецепт или подборку и нажмите «↓ Сохранить» — они будут открываться без интернета.</div>`;
   }
   if (sub === "menus") {
     if (!plan().plus) h += `<div class="lock"><b>Свои сборники, меню и список покупок — в «фишках»</b>Одна полка с фишками — 990 ₽. <button class="btn sm" id="up" style="margin-top:8px">Посмотреть тарифы</button></div>`;
@@ -262,7 +315,7 @@ async function refreshStatus() {
   if (Object.keys(books).length) sw.postMessage({ type: "status", books });
 }
 if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", ({ data: m }) => {
-  if (m.type === "progress") { dl[m.slug] = Math.floor(100 * m.done / m.total); const st = document.querySelector(`[data-st="${m.slug}"]`); if (st) st.innerHTML = dl[m.slug] >= 100 ? `<button class="dl ok" disabled>✓ На полке</button>` : `<button class="dl" disabled>Загрузка ${dl[m.slug]}%</button>`; if (dl[m.slug] >= 100) toast("Книга сохранена — работает без интернета"); }
+  if (m.type === "progress") { dl[m.slug] = Math.floor(100 * m.done / m.total); const st = document.querySelector(`[data-st="${m.slug}"]`); if (st) st.innerHTML = dl[m.slug] >= 100 ? `<button class="dl ok" disabled>✓ На полке</button>` : `<button class="dl" disabled>Загрузка ${dl[m.slug]}%</button>`; if (dl[m.slug] >= 100) toast("Сохранено — открывается без интернета"); }
   if (m.type === "status") for (const [s, miss] of Object.entries(m.missing)) if (miss > 0 && !dl[s]) { // докачать, если что-то не успело
     swReady().then(sw => sw && sw.postMessage({ type: "book", slug: s, urls: [`img/${s}.jpg`, ...F[s].lite, ...F[s].video] })); }
 });
@@ -270,10 +323,10 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("mess
 // ——— маршруты
 function route() {
   const h = location.hash.slice(1) || "shelves"; const [a, b, c] = h.split("/");
-  document.querySelectorAll("#tabs a").forEach(x => x.classList.toggle("on", x.dataset.t === (a === "menu" ? "my" : a.startsWith("share") ? "" : a)));
+  document.querySelectorAll("#tabs a").forEach(x => x.classList.toggle("on", x.dataset.t === (a === "menu" ? "my" : (a === "r" || a === "c") ? "shelves" : a.startsWith("share") ? "" : a)));
   planBtn(); window.scrollTo(0, 0);
   if (a.startsWith("share=")) return vShare(h.slice(6));
-  ({ shelves: vShelves, builders: vBuilders, club: vClub, chat: vChat, my: () => vMy(b), menu: () => vMenu(b, c) }[a] || vShelves)();
+  ({ shelves: vShelves, builders: vBuilders, club: vClub, chat: vChat, my: () => vMy(b), menu: () => vMenu(b, c), r: () => vRecipe(b), c: () => vCollection(b) }[a] || vShelves)();
 }
 addEventListener("hashchange", route);
 (async () => {
