@@ -166,9 +166,10 @@ function vRecipe(id) {
   const paintCook = () => { const log = cookLog(id), a = avgStars(log);
     $("#cookbox").innerHTML = `<div class="card"><div class="row" style="justify-content:space-between"><div><b>${log.length ? `Вы готовили ${log.length} ${log.length % 10 === 1 && log.length % 100 !== 11 ? "раз" : [2, 3, 4].includes(log.length % 10) && ![12, 13, 14].includes(log.length % 100) ? "раза" : "раз"}` : "Готовили это блюдо?"}</b>
       ${log.length >= 3 ? ` <span class="pill">❤ Моё любимое</span>` : ""}<br><span class="note">${log.length ? `последний раз ${fmtDate(log[log.length - 1].d)}${a ? ` · моя оценка ${a.toFixed(1).replace(".", ",")} ★` : ""}` : "Отметьте, как получилось — это ваш кулинарный дневник"}</span></div>
-      <button class="btn sm" id="cookbtn">✓ Я приготовила</button></div>
+      <div class="row"><button class="btn sm" id="cookbtn">✓ Я приготовила</button>${log.length ? `<label class="btn sm ghost">📷 На стену<input type="file" accept="image/*" id="towall" hidden></label>` : ""}</div></div>
       ${log.length ? `<div class="hist">${log.map((x, k) => [x, k]).reverse().map(([x, k]) => `<button class="he" data-e="${k}" type="button"><span>${fmtDate(x.d)}</span><span class="st">${x.s ? stars(x.s) : ""}</span><span class="pen">✎</span>${x.n ? `<p>${esc(x.n)}</p>` : `<p class="nn">добавить заметку</p>`}</button>`).join("")}</div>` : ""}</div>`;
     $("#cookbtn").onclick = () => cookSheet(id, paintCook);
+    const wb = $("#towall"); if (wb) wb.onchange = e => { const fl = e.target.files[0]; if (fl) wallUpload(fl, "wall", id); };
     $("#cookbox").querySelectorAll("[data-e]").forEach(b => b.onclick = () => cookSheet(id, paintCook, +b.dataset.e)); };
   paintCook();
 }
@@ -222,20 +223,47 @@ const SEED = [
   { a: "А", who: "Участница", t: "Блендером, как в шаге 3 — там видно, какая должна быть консистенция." },
   { a: "М", who: "Модератор", mod: true, t: "В пятницу тема стены работ — рождественская выпечка. Ждём ваши фото!" },
 ];
-function vChat() {
-  const wall = [...S.wall, "img/kotlety.jpg", "img/rozhdestvo.jpg", "img/rulety.jpg"].slice(0, 9);
-  $("#view").innerHTML = `<h1>Общение</h1>
-    <div class="lock" style="background:#fff;border-color:var(--line)">Здесь общаются участники, порядок держит модератор. <b style="display:inline">Ответы шефов и кураторов — в клубе Планета Х.</b></div>
-    <h2>Стена работ недели</h2><div class="wall">${wall.map(s => `<img src="${s}" alt="Работа участницы">`).join("")}</div>
-    <div class="row" style="margin-top:8px"><label class="btn ghost sm">+ Моё фото<input type="file" accept="image/*" id="ph" hidden></label></div>
-    <h2>Чат участников</h2><div id="msgs">${[...SEED, ...S.chat].map(m => `<div class="msg${m.me ? " me" : ""}${m.mod ? " mod" : ""}">${m.me ? "" : `<span class="av">${m.a}</span>`}<div class="bb"><small>${m.me ? "Вы" : m.who}</small>${esc(m.t)}</div></div>`).join("")}</div>
-    <form class="compose" id="cf"><input id="ci" placeholder="Написать участникам…" aria-label="Сообщение"><button class="btn" type="submit">→</button></form>
-    <p class="note" style="margin-top:8px">В прототипе ваши сообщения и фото видны только на этом телефоне.</p>`;
-  $("#cf").onsubmit = e => { e.preventDefault(); const t = $("#ci").value.trim(); if (!t) return; S.chat.push({ me: true, t }); save(); vChat(); };
-  $("#ph").onchange = e => { const f = e.target.files[0]; if (!f) return; const img = new Image(); img.onload = () => {
-    const c = document.createElement("canvas"), k = Math.min(1, 500 / Math.max(img.width, img.height)); c.width = img.width * k; c.height = img.height * k;
-    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); S.wall.unshift(c.toDataURL("image/jpeg", .75)); S.wall = S.wall.slice(0, 6); save(); vChat(); };
-    img.src = URL.createObjectURL(f); };
+// стена работ: фото с подписью «блюдо · имя Ф.»; в чате — только полоска свежих, вся стена — отдельной вкладкой
+const WALL_SEED = [
+  { src: "img/kotlety.jpg", dish: "kotlety-r01", name: "Пример работы", t: Date.now() - 864e5 },
+  { src: "img/rozhdestvo.jpg", dish: "rozhdestvo-r09", name: "Пример работы", t: Date.now() - 864e5 * 2 },
+  { src: "img/rulety.jpg", dish: "rulety-r01", name: "Пример работы", t: Date.now() - 864e5 * 3 },
+];
+const wallItems = () => [...(S.wall || []).map(w => typeof w === "string" ? { src: w, dish: "", name: S.me || "Вы", t: 0 } : w), ...WALL_SEED];
+const wallCap = w => `${w.dish && R[w.dish] ? esc(R[w.dish].title) : "Моё блюдо"}<small>${esc(w.name)}${w.t ? " · " + fmtDate(w.t) : ""}</small>`;
+function vChat(sub) {
+  sub = sub || "chat";
+  const W = wallItems();
+  let h = `<h1>Общение</h1><div class="seg">${[["chat", "Чат"], ["wall", "Стена работ · " + W.length]].map(([k, t]) => `<a href="#chat/${k}" style="text-decoration:none;display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:20px;font-weight:700;${k === sub ? "background:var(--terra);color:#fff" : "color:var(--ink2)"}">${t}</a>`).join("")}</div>`;
+  if (sub === "wall") {
+    h += `<div class="row" style="justify-content:space-between;margin-bottom:10px"><span class="note">Свежие сверху. Нажмите на фото, чтобы открыть рецепт.</span><label class="btn sm">+ Моё фото<input type="file" accept="image/*" id="ph" hidden></label></div>
+      <div class="wallg">${W.map(w => `<a class="wi" href="${w.dish ? "#r/" + w.dish : "#chat/wall"}"><img src="${w.src}" alt="" loading="lazy"><span>${wallCap(w)}</span></a>`).join("")}</div>`;
+  } else {
+    h += `<div class="lock" style="background:var(--card);border-color:var(--line)">Здесь общаются участники, порядок держит модератор. <b style="display:inline">Ответы шефов и кураторов — в клубе Планета Х.</b></div>
+      <div class="row" style="justify-content:space-between;margin:14px 0 8px"><b>Стена работ недели</b><a href="#chat/wall" class="note" style="text-decoration:none">Все ${W.length} →</a></div>
+      <div class="wallstrip">${W.slice(0, 8).map(w => `<a class="wi" href="${w.dish ? "#r/" + w.dish : "#chat/wall"}"><img src="${w.src}" alt="" loading="lazy"><span>${wallCap(w)}</span></a>`).join("")}
+        <label class="wadd">＋<small>Моё фото</small><input type="file" accept="image/*" id="ph" hidden></label></div>
+      <h2>Чат участников</h2><div id="msgs">${[...SEED, ...S.chat].map(m => `<div class="msg${m.me ? " me" : ""}${m.mod ? " mod" : ""}">${m.me ? "" : `<span class="av">${m.a}</span>`}<div class="bb"><small>${m.me ? esc(S.me || "Вы") : m.who}</small>${esc(m.t)}</div></div>`).join("")}</div>
+      <form class="compose" id="cf"><input id="ci" placeholder="Написать участникам…" aria-label="Сообщение"><button class="btn" type="submit">→</button></form>`;
+  }
+  h += `<p class="note" style="margin-top:10px">В прототипе ваши сообщения и фото видны только на этом телефоне.</p>`;
+  $("#view").innerHTML = h;
+  const cf = $("#cf"); if (cf) cf.onsubmit = e => { e.preventDefault(); const t = $("#ci").value.trim(); if (!t) return; S.chat.push({ me: true, t }); save(); vChat("chat"); };
+  const ph = $("#ph"); if (ph) ph.onchange = e => { const f = e.target.files[0]; if (f) wallUpload(f, sub); };
+}
+function wallUpload(file, sub, dishId) {
+  const img = new Image(); img.onload = () => {
+    const c = document.createElement("canvas"), k = Math.min(1, 700 / Math.max(img.width, img.height)); c.width = img.width * k; c.height = img.height * k;
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); const src = c.toDataURL("image/jpeg", .75);
+    const recent = [...new Set([...Object.keys(S.cooked || {}).reverse(), ...S.bm, ...S.menus.flatMap(m => m.items.map(i => i.id))])].filter(id => R[id]).slice(0, 12);
+    sheet(`<h3>Подпись к фото</h3><img src="${src}" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin:0 0 10px">
+      <label class="note">Как вас подписать (имя и первая буква фамилии)</label><input id="wn" class="search" value="${esc(S.me || "")}" placeholder="Например: Анна К." style="margin-top:4px">
+      <label class="note">Какое это блюдо</label><select id="wd" class="search" style="margin-top:4px">${dishId ? "" : `<option value="">Выберите рецепт…</option>`}${(dishId ? [dishId] : recent).map(id => `<option value="${id}">${esc(R[id].title)}</option>`).join("")}${dishId ? "" : D.recipes.filter(r => !recent.includes(r.id)).map(r => `<option value="${r.id}">${esc(r.title)}</option>`).join("")}</select>
+      <button class="btn" id="wok" style="width:100%;margin-top:6px">На стену</button>`);
+    $("#wok").onclick = () => { const name = $("#wn").value.trim() || "Участница"; S.me = name;
+      (S.wall = S.wall || []).unshift({ src, dish: $("#wd").value, name, t: Date.now() }); S.wall = S.wall.slice(0, 12); save(); closeSheet(); toast("Фото на стене работ"); location.hash = "#chat/wall"; vChat("wall"); };
+  };
+  img.src = URL.createObjectURL(file);
 }
 
 function vMy(sub) {
@@ -385,7 +413,7 @@ function route() {
   document.querySelectorAll("#tabs a").forEach(x => x.classList.toggle("on", x.dataset.t === (a === "menu" ? "my" : (a === "r" || a === "c") ? "shelves" : a.startsWith("share") ? "" : a)));
   planBtn(); window.scrollTo(0, 0);
   if (a.startsWith("share=")) return vShare(h.slice(6));
-  ({ shelves: vShelves, builders: vBuilders, club: vClub, chat: vChat, my: () => vMy(b), menu: () => vMenu(b, c), r: () => vRecipe(b), c: () => vCollection(b) }[a] || vShelves)();
+  ({ shelves: vShelves, builders: vBuilders, club: vClub, chat: () => vChat(b), my: () => vMy(b), menu: () => vMenu(b, c), r: () => vRecipe(b), c: () => vCollection(b) }[a] || vShelves)();
 }
 addEventListener("hashchange", route);
 (async () => {
