@@ -67,8 +67,8 @@ function vShelves() {
     ${list.length > f.n ? `<div class="row" style="justify-content:center;margin-top:12px"><button class="btn ghost" id="more">Показать ещё</button></div>` : ""}
     <h2 style="margin-top:30px">Подборки</h2>
     ${m ? `<a class="month" href="#c/${m.slug}"><img src="img/${m.slug}.jpg" alt=""><div><span class="pill">Подборка месяца</span><b>${esc(m.title)}</b><small>${esc(m.who)} · ${m.n} рецептов</small></div></a>` : ""}
-    <div class="hs">${cols.filter(b => !m || b.slug !== m.slug).map(b => `<a class="col" href="#c/${b.slug}"><img src="img/${b.slug}.jpg" alt="" loading="lazy"><b>${esc(b.title)}</b><small>${b.n} рецептов</small></a>`).join("")}</div>
-    ${mine.length ? `<h2>Мои книги</h2><div class="hs">${mine.map(x => { const r0 = R[x.items[0].id]; return `<a class="col" href="#menu/${x.id}"><img src="${r0 ? r0.img : ""}" alt=""><b>${esc(x.title)}</b><small>${x.items.length} блюд</small></a>`; }).join("")}</div>` : ""}
+    <div class="shelf">${cols.filter(b => !m || b.slug !== m.slug).map(b => bookCv(`#c/${b.slug}`, `img/${b.slug}.jpg`, b.title, b.n + " рецептов")).join("")}</div>
+    ${mine.length ? `<h2>Мои книги</h2><div class="shelf">${mine.map(x => { const r0 = R[x.items[0].id]; return bookCv(`#menu/${x.id}`, r0 ? r0.img : "", x.title, x.items.length + " " + pl(x.items.length, "блюдо", "блюда", "блюд")); }).join("")}</div>` : ""}
     ${sh === "pastry" ? `<h2>Готовится из архива</h2><div class="list">${SOON_PASTRY.map(([t, n]) => `<div class="li soon"><div class="t"><b>${t}</b><small>${n} рецептов переносятся из архива клуба</small></div><span class="pill o">Скоро</span></div>`).join("")}</div>` : ""}
     <p class="proto">Прототип Кулинарного навигатора · данные хранятся только в этом телефоне</p>`;
   $("#view").innerHTML = h;
@@ -106,6 +106,7 @@ function addToMenu(id) {
   $("#sheet").querySelectorAll("[data-m]").forEach(b => b.onclick = () => { const m = S.menus.find(x => x.id === b.dataset.m); if (!m.items.some(i => i.id === id)) m.items.push({ id, day: dayOf(R[id]) }); save(); closeSheet(); toast("Добавлено в книгу «" + m.title + "»"); });
   $("#sheet").querySelector("[data-new]").onclick = () => { const t = prompt("Название книги", "Мой новогодний стол"); if (!t) return; const nid = newMenu(t); S.menus.find(x => x.id === nid).items.push({ id, day: dayOf(R[id]) }); save(); closeSheet(); toast("Книга «" + t + "» создана"); };
 }
+const bookCv = (href, img, title, sub) => `<a class="bk" href="${href}"><span class="cov"><img src="${img}" alt="" loading="lazy"><span class="bkt"><b>${esc(title)}</b><small>${sub}</small></span></span></a>`;
 const assets = r => [r.img, ...r.srows.map(s => s.v).filter(Boolean)];
 const pl = (n, a, b, c) => n % 10 === 1 && n % 100 !== 11 ? a : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? b : c;
 const cookLog = id => (S.cooked = S.cooked || {})[id] || [];
@@ -236,14 +237,14 @@ function vMy(sub) {
   if (sub === "books") {
     const rs = Object.keys(S.saved).filter(k => k.startsWith("r:")).map(k => R[k.slice(2)]).filter(Boolean);
     const cs = Object.keys(S.saved).filter(k => k.startsWith("c:")).map(k => bookOf(k.slice(2))).filter(Boolean);
-    h += (cs.length ? `<h2>Подборки</h2><div class="hs">${cs.map(b => `<a class="col" href="#c/${b.slug}"><img src="img/${b.slug}.jpg" alt=""><b>${esc(b.title)}</b><small>${b.n} рецептов</small></a>`).join("")}</div>` : "")
+    h += (cs.length ? `<h2>Подборки</h2><div class="shelf">${cs.map(b => bookCv(`#c/${b.slug}`, `img/${b.slug}.jpg`, b.title, b.n + " рецептов")).join("")}</div>` : "")
       + (rs.length ? `<h2>Рецепты</h2><div class="list">${rs.map(r => li(r)).join("")}</div>` : "")
       || `<div class="empty">Пока пусто. Откройте рецепт или подборку и нажмите «↓ Сохранить» — они будут открываться без интернета.</div>`;
   }
   if (sub === "menus") {
     if (!plan().plus) h += `<div class="lock"><b>Мои книги, меню и список покупок — в «фишках»</b>Одна полка с фишками — 990 ₽. <button class="btn sm" id="up" style="margin-top:8px">Посмотреть тарифы</button></div>`;
     else {
-      h += `<div class="list">${S.menus.map(m => `<a class="li" href="#menu/${m.id}"><div class="t"><b>${esc(m.title)}</b><small>${m.items.length} блюд</small></div><span class="pill o">Открыть</span></a>`).join("") || `<div class="empty">Своих книг пока нет. В «Книге» у любого рецепта есть кнопка «+ В мою книгу»: соберите меню к празднику или книгу любимых блюд.</div>`}</div>
+      h += `<div class="shelf">${S.menus.map(m => { const r0 = m.items[0] && R[m.items[0].id]; return bookCv(`#menu/${m.id}`, r0 ? r0.img : "img/logo-light.png", m.title, m.items.length + " " + pl(m.items.length, "блюдо", "блюда", "блюд")); }).join("")}</div><div class="list">${S.menus.length ? "" : `<div class="empty">Своих книг пока нет. В «Книге» у любого рецепта есть кнопка «+ В мою книгу»: соберите меню к празднику или книгу любимых блюд.</div>`}</div>
         <div class="row" style="margin-top:12px"><button class="btn" id="newMenu">+ Новая книга</button><button class="btn ghost" id="readyMenu">Готовое меню от Тианы</button></div>`;
     }
   }

@@ -204,3 +204,25 @@ select,textarea,input{color:var(--ink)}
 .starpick button{border:0;background:transparent;font-size:34px;line-height:1;color:var(--mute);padding:2px}
 .starpick button.on{color:var(--ochre)}
 .ck{color:var(--ochre);font-weight:700}
+
+/* ровные карточки рецептов: название в 2 строки, кнопки прижаты к низу */
+.grid{align-items:stretch}
+.book{height:100%}
+.book a.cv{flex:1;display:flex;flex-direction:column}
+.book .bt{flex:1;display:flex;flex-direction:column}
+.book .bt b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.5em}
+.book .bt small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:auto;padding-top:2px}
+.book .bt .kk{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* книжная полка: книги стоят на деревянной доске */
+.shelf{position:relative;display:flex;gap:14px;align-items:flex-end;overflow-x:auto;padding:14px 14px 22px;margin:0 0 18px;scrollbar-width:none;
+  background:linear-gradient(180deg,#5b3a22 0,#4a2e1a 6px,#2c1b0f 16px) left bottom/100% 16px no-repeat local, linear-gradient(180deg,#160e09,#1f140d) ;
+  border-radius:12px;box-shadow:inset 0 10px 24px rgba(0,0,0,.55)}
+.shelf::-webkit-scrollbar{display:none}
+.bk{flex:0 0 118px;text-decoration:none;color:#fff;transition:transform .2s}
+.bk:hover{transform:translateY(-4px)}
+.bk .cov{position:relative;display:block;width:118px;height:162px;border-radius:3px 8px 8px 3px;overflow:hidden;box-shadow:6px 6px 14px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.06)}
+.bk .cov::before{content:"";position:absolute;inset:0;z-index:2;background:linear-gradient(90deg,rgba(0,0,0,.55) 0,rgba(255,255,255,.18) 4%,rgba(0,0,0,.15) 7%,rgba(0,0,0,0) 12%)}
+.bk img{width:100%;height:100%;object-fit:cover;display:block}
+.bkt{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:26px 10px 9px 14px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.85))}
+.bkt b{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font:700 13px/1.1 var(--display);text-transform:uppercase;color:var(--ochre)}
+.bkt small{display:block;font-size:10px;color:#e3d4c2;margin-top:3px}
