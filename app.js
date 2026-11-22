@@ -136,8 +136,8 @@ function vRecipe(id) {
   $("#add").onclick = () => addToMenu(id);
   $("#nt").onclick = () => { const nb = $("#notebox"); nb.hidden = !nb.hidden; if (!nb.hidden) $("#ta").focus(); };
   $("#ta").oninput = () => { S.notes[id] = $("#ta").value; save(); };
-  $("#vid").onclick = () => { sheet(`<h3>Видеоурок «${esc(r.title)}»</h3><p>Полный урок шефа именно по этому блюду: как готовит, на что обратить внимание, ответы на частые вопросы.</p>
-    <div class="opt"><button id="buy" class="on"><b>Купить урок</b><small>Цена уточняется. В прототипе покупка не работает</small></button><button id="toclub"><b>Все видеоуроки и шефы — в клубе</b><small>2 000+ уроков, обратная связь, розыгрыши</small></button></div>`);
+  $("#vid").onclick = () => { sheet(`<h3>Видеоурок «${esc(r.title)}»</h3><p>Посмотрите, как шеф готовит это блюдо от начала до конца, с живыми комментариями. Рецепт в приложении полный — видеоурок для тех, кто любит учиться, глядя на руки шефа.</p>
+    <div class="opt"><button id="buy" class="on"><b>Купить урок</b><small>Цена уточняется. В прототипе покупка не работает</small></button><button id="toclub"><b>Все видеоуроки и ответы шефов — в клубе</b><small>2 000+ уроков, обратная связь, розыгрыши</small></button></div>`);
     $("#buy").onclick = () => { closeSheet(); toast("В прототипе покупка не подключена"); }; $("#toclub").onclick = () => { closeSheet(); location.hash = "#club"; }; };
   $("#sv").onclick = () => saveAssets("r:" + id, assets(r));
 }
@@ -181,7 +181,7 @@ function vClub() {
       <div class="li"><div class="t"><b>Стандарт — 1 490 ₽ в месяц</b><small>8 уроков в месяц, поддержка шефов и кураторов, розыгрыши</small></div></div>
       <div class="li"><div class="t"><b>ПРО — 2 490 ₽ в месяц</b><small>16 уроков в месяц, всё из стандарта, двойные шансы в розыгрышах</small></div></div></div>
     <div class="row" style="margin-top:14px"><a class="btn" href="https://xplanet.club" target="_blank" rel="noopener">Перейти в клуб</a></div>
-    <h2>Видеоурок к одному рецепту</h2><p class="note">Не хотите весь клуб — у каждого рецепта в книге есть кнопка «▶ Видеоурок шефа»: полный урок именно по этому блюду можно купить разово.</p>
+    <h2>Видеоурок к одному рецепту</h2><p class="note">Не хотите весь клуб — у каждого рецепта в книге есть кнопка «▶ Видеоурок шефа»: видеоурок, где шеф готовит это блюдо от начала до конца, можно купить разово. Сам рецепт в приложении полный.</p>
     <p class="note" style="margin-top:10px">Как участники клуба получают приложение, ещё решается.</p>`;
 }
 

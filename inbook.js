@@ -24,8 +24,8 @@
     const paint = () => { const on = S.bm.includes(id); bm.textContent = on ? "★ В закладках" : "☆ Закладка"; bm.classList.toggle("on", on); nt.textContent = S.notes[id] ? "✎ Моя заметка" : "✎ Заметка"; nt.classList.toggle("on", !!S.notes[id]); };
     mn.textContent = "+ В сборник";
     const vid = document.createElement("button"); vid.textContent = "▶ Видеоурок шефа";
-    vid.onclick = () => { const s = sheet(`<h3>Видеоурок «${esc(title)}»</h3><p>Полный урок шефа именно по этому блюду: как готовит, на что обратить внимание, ответы на частые вопросы.</p>
-      <button class="pri" id="buy">Купить урок · цена уточняется</button><button id="club">Все видеоуроки и шефы — в клубе</button><p style="font-size:12px;color:#7A6F65">В прототипе покупка не работает.</p>`);
+    vid.onclick = () => { const s = sheet(`<h3>Видеоурок «${esc(title)}»</h3><p>Посмотрите, как шеф готовит это блюдо от начала до конца, с живыми комментариями. Рецепт в приложении полный — видеоурок для тех, кто любит учиться, глядя на руки шефа.</p>
+      <button class="pri" id="buy">Купить урок · цена уточняется</button><button id="club">Все видеоуроки и ответы шефов — в клубе</button><p style="font-size:12px;color:#7A6F65">В прототипе покупка не работает.</p>`);
       s.querySelector("#buy").onclick = () => { s.remove(); toast("В прототипе покупка не подключена"); };
       s.querySelector("#club").onclick = () => { location.href = "../../#club"; }; };
     bm.onclick = () => { S.bm = S.bm.includes(id) ? S.bm.filter(x => x !== id) : [...S.bm, id]; save(); paint(); toast(S.bm.includes(id) ? "Добавлено в закладки" : "Убрано из закладок"); };
