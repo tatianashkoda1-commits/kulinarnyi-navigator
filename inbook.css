@@ -1,0 +1,18 @@
+.nav-back{position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:50;background:#E85D3A;color:#fff;text-decoration:none;font:700 13px Inter,"Segoe UI",sans-serif;padding:11px 15px;border-radius:24px;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.nav-bar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.nav-bar button{font:700 13px Inter,"Segoe UI",sans-serif;border:1px solid #E85D3A;background:#fff;color:#E85D3A;border-radius:20px;padding:8px 12px;cursor:pointer}
+.nav-bar button.on{background:#E85D3A;color:#fff}
+.nav-note{display:none;margin:8px 0 0}
+.nav-note.open{display:block}
+.nav-note textarea{width:100%;min-height:80px;border:1px solid #E8DDD0;border-radius:12px;padding:10px;font:14px Inter,"Segoe UI",sans-serif;background:#FDF8F3;color:#2D2A26}
+.nav-note small{display:block;color:#7A6F65;font:12px Inter,sans-serif;margin-top:4px}
+.nav-sheet{position:fixed;inset:0;z-index:60;background:rgba(45,42,38,.5);display:flex;align-items:flex-end;justify-content:center}
+.nav-sheet .box{background:#FDF8F3;color:#2D2A26;width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));font:15px/1.45 Inter,"Segoe UI",sans-serif;max-height:80vh;overflow:auto}
+.nav-sheet h3{margin:0 0 10px;font-size:18px}
+.nav-sheet button{display:block;width:100%;text-align:left;border:1px solid #E8DDD0;background:#fff;border-radius:14px;padding:12px 14px;margin:0 0 8px;font:600 15px Inter,sans-serif;color:#2D2A26;cursor:pointer}
+.nav-sheet button.pri{background:#E85D3A;color:#fff;border-color:#E85D3A;text-align:center}
+.nav-toast{position:fixed;left:50%;bottom:calc(70px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#2D2A26;color:#fff;padding:10px 16px;border-radius:20px;font:13px Inter,sans-serif;z-index:70}
+.nav-lockpage{position:fixed;inset:0;z-index:55;background:rgba(253,248,243,.97);display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font:15px/1.5 Inter,"Segoe UI",sans-serif;color:#2D2A26}
+.nav-lockpage .in{max-width:380px}
+.nav-lockpage a{display:inline-block;margin:6px;padding:11px 16px;border-radius:22px;text-decoration:none;font-weight:700;background:#E85D3A;color:#fff}
+.nav-lockpage a.g{background:#fff;color:#E85D3A;border:1px solid #E85D3A}
