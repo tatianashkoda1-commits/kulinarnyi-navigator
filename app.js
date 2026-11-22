@@ -95,25 +95,27 @@ function wireShelves(f, dishes, themes) {
 }
 
 // ——— книжный шкаф: полки по темам, рецепты — книги, чуть развёрнутые; при нажатии книга выдвигается
-const rbook = r => `<a class="rb" href="#r/${r.id}" data-pull="${r.id}"><span class="rbc"><img src="${r.img}" alt="" loading="lazy"><span class="rbt"><b>${esc(r.title)}</b>${cookLog(r.id).length ? `<small>✓ ${cookLog(r.id).length}</small>` : ""}</span></span></a>`;
+const SPINE = ["#5b1f1a", "#1f3a2e", "#2a2f4a", "#4a3418", "#3a1f3a", "#183a3a", "#4a2a1f", "#2e2e2e"];
+const BH = [150, 160, 146, 164, 154, 142, 158];
+const rbook = (r, i = 0) => `<a class="rb" href="#r/${r.id}" data-pull="${r.id}" style="height:${BH[i % BH.length]}px;--sp:${SPINE[(r.title.length + i) % SPINE.length]}"><span class="sp"><i>${esc(r.title)}</i></span><span class="rbc"><img src="${r.img}" alt="" loading="lazy"><span class="rbt"><b>${esc(r.title)}</b>${cookLog(r.id).length ? `<small>✓ ${cookLog(r.id).length}</small>` : ""}</span></span></a>`;
 function shelfRow(title, items, more) {
   if (!items.length) return "";
-  return `<section class="case"><div class="caseh"><h3>${esc(title)}</h3>${more ? `<button class="all" ${more}>Все ${items.length > 0 ? "→" : ""}</button>` : ""}</div>
-    <div class="caserow">${items.join("")}</div></section>`;
+  return `<section class="case"><div class="shelfwrap"><div class="caserow">${items.join("")}</div>
+    <div class="plank"><button class="plate" ${more || ""} type="button">${esc(title)}${more ? " · все →" : ""}</button></div></div></section>`;
 }
 function caseHtml(sh, all, cols, m, mine) {
   const theme = sh === "cook" ? "Новый год" : "Рождество";
   const rec = [...all.filter(r => m && r.book === m.slug), ...all.filter(r => r.themes.includes(theme) && (!m || r.book !== m.slug))].slice(0, 14);
   const byDish = {}; all.forEach(r => (byDish[r.dish] = byDish[r.dish] || []).push(r));
   const order = Object.entries(byDish).sort((a, b) => b[1].length - a[1].length);
-  let h = `<div class="cabinet">` + shelfRow("Навигатор рекомендует", rec.map(rbook));
-  for (const [d, rs] of order) h += shelfRow(d, rs.slice(0, 14).map(rbook), `data-dish="${esc(d)}"`);
+  let h = `<div class="cabinet">` + shelfRow("Навигатор рекомендует", rec.map((r, i) => rbook(r, i)));
+  for (const [d, rs] of order) h += shelfRow(d, rs.slice(0, 14).map((r, i) => rbook(r, i)), `data-dish="${esc(d)}"`);
   h += shelfRow("Подборки шефов", cols.map(b => bookCv(`#c/${b.slug}`, `img/${b.slug}.jpg`, b.title, b.n + " рецептов")));
   h += `</div>`;
   const fav = Object.entries(S.cooked || {}).filter(([id, l]) => l.length >= 3 && R[id]).map(([id]) => R[id]);
   const bms = S.bm.map(id => R[id]).filter(Boolean);
   const mineRows = shelfRow("Мои книги", mine.map(x => { const r0 = R[x.items[0].id]; return bookCv(`#menu/${x.id}`, r0 ? r0.img : "", x.title, x.items.length + " " + pl(x.items.length, "блюдо", "блюда", "блюд")); }))
-    + shelfRow("Моё любимое", fav.map(rbook)) + shelfRow("Закладки", bms.map(rbook));
+    + shelfRow("Моё любимое", fav.map((r, i) => rbook(r, i))) + shelfRow("Закладки", bms.map((r, i) => rbook(r, i)));
   if (mineRows) h += `<h2 style="margin-top:26px">Мои полки</h2><div class="cabinet mine">${mineRows}</div>`;
   if (sh === "pastry") h += `<h2>Готовится из архива</h2><div class="list">${SOON_PASTRY.map(([t, n]) => `<div class="li soon"><div class="t"><b>${t}</b><small>${n} рецептов переносятся из архива клуба</small></div><span class="pill o">Скоро</span></div>`).join("")}</div>`;
   return h + `<p class="proto">Прототип Кулинарного навигатора · данные хранятся только в этом телефоне</p>`;
