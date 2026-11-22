@@ -8,6 +8,7 @@
   const s = document.getElementById("s");
   try { if ("serviceWorker" in navigator) for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); } catch (_) {}
   try { if (window.caches) for (const k of await caches.keys()) await caches.delete(k); } catch (_) {}
+  try { await fetch("app.css?v=" + Date.now(), { cache: "reload" }); await fetch("app.js?v=" + Date.now(), { cache: "reload" }); await fetch("./", { cache: "reload" }); await fetch("app.css?v=6", { cache: "reload" }); await fetch("app.js?v=6", { cache: "reload" }); } catch (_) {}
   s.textContent = "Готово, открываю навигатор…";
   setTimeout(() => location.replace("./?demo&v=" + Date.now()), 900);
 })();

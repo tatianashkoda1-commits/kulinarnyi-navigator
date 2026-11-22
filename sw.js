@@ -1,6 +1,6 @@
 // Навигатор: один сервис-воркер на приложение и все книги (основа — сервис-воркер «Моей полки» ХулиФуда).
 // Приложение кешируется при установке; книга — целиком по кнопке «На полку»; видео отдаются из кеша нарезкой 206 (иначе на iPhone офлайн не играет).
-const C = "nav-v3";
+const C = "nav-v4";
 const SHELL = ["./", "index.html", "app.js", "app.css", "inbook.js", "inbook.css", "manifest.webmanifest", "data.json", "files.json", "img/logo.png", "img/logo-light.png", "img/icon-192.png", "img/icon-512.png"];
 self.addEventListener("install", e => { self.skipWaiting(); e.waitUntil(caches.open(C).then(c => c.addAll(SHELL))); });
 self.addEventListener("activate", e => e.waitUntil((async () => { for (const k of await caches.keys()) if (k !== C) await caches.delete(k); await self.clients.claim(); })()));
@@ -36,7 +36,7 @@ self.addEventListener("fetch", e => {
     return;
   }
   if (req.mode === "navigate") {
-    const fresh = fetch(req).then(r => { if (r.ok) { const cp = r.clone(); caches.open(C).then(c => c.put(url, cp)); } return r; });
+    const fresh = fetch(req, { cache: "no-store" }).then(r => { if (r.ok) { const cp = r.clone(); caches.open(C).then(c => c.put(url, cp)); } return r; });
     e.respondWith((async () => {
       const hit = (await caches.match(url, { ignoreSearch: true })) || (await caches.match(url.replace(/\/?$/, "/index.html")));
       if (hit) { const quick = await Promise.race([fresh.catch(() => null), new Promise(r => setTimeout(() => r(null), 1500))]); if (quick && quick.ok) return quick; e.waitUntil(fresh.catch(() => {})); return hit; }
@@ -45,6 +45,6 @@ self.addEventListener("fetch", e => {
     return;
   }
   // код приложения и data.json — сначала сеть (свежая версия), без сети из кеша; остальное — кеш, иначе сеть
-  if (/data\.json|files\.json|\/(app\.js|app\.css|inbook\.js|inbook\.css|manifest\.webmanifest)$/.test(url)) { e.respondWith(fetch(req).then(r => { const cp = r.clone(); caches.open(C).then(c => c.put(url, cp)); return r; }).catch(() => caches.match(url))); return; }
+  if (/data\.json|files\.json|\/(app\.js|app\.css|inbook\.js|inbook\.css|manifest\.webmanifest)(\?.*)?$/.test(url)) { e.respondWith(fetch(req, { cache: "no-store" }).then(r => { const cp = r.clone(); caches.open(C).then(c => c.put(url, cp)); return r; }).catch(() => caches.match(url, { ignoreSearch: true }))); return; }
   e.respondWith(caches.match(url).then(hit => (hit && hit.ok) ? hit : fetch(req).then(r => { if (r.ok && !/\.mp4$/.test(url)) { const cp = r.clone(); caches.open(C).then(c => c.put(url, cp)); } return r; })).catch(() => fetch(req)));
 });
