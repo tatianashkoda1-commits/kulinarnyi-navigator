@@ -126,6 +126,7 @@ function vRecipe(id) {
     <section class="steps"><h2>Как готовить</h2>${r.srows.map((s, k) => `<div class="step"><div class="clip">${s.v ? `<video data-src="${s.v}" muted loop playsinline preload="none"></video>` : ""}<span class="n">${k + 1}</span></div><div class="tx"><b>${esc(s.h)}</b><p>${esc(s.p)}</p></div></div>`).join("")}</section></div>
     ${r.tips.length ? `<h2>Секреты шефа</h2><div class="tips">${r.tips.map(t => `<div class="tip"><b>${esc(t.b)}</b><p>${esc(t.t)}</p>${t.q ? `<q>${esc(t.q)}</q>` : ""}</div>`).join("")}</div>` : ""}
     ${r.qa.length ? `<h2>Шеф уточняет</h2><div class="qa">${r.qa.map(x => `<details><summary>${esc(x.q)}</summary><p>${esc(x.a)}</p></details>`).join("")}</div>` : ""}
+    <h2>Готовое блюдо</h2><figure class="final"><img src="${r.img}" alt="${esc(r.title)} — готовое блюдо" loading="lazy"><figcaption>${esc(r.title)} · ${esc(b.who)}</figcaption></figure>
     <div class="nav2">${i > 0 ? `<a href="#r/${sib[i - 1].id}">← ${esc(sib[i - 1].title)}</a>` : "<span></span>"}${i < sib.length - 1 ? `<a href="#r/${sib[i + 1].id}">${esc(sib[i + 1].title)} →</a>` : ""}</div>`;
   $("#view").innerHTML = h;
   // видео шагов: грузятся и играют, когда шаг на экране

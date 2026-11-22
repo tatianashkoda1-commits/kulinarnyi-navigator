@@ -184,3 +184,8 @@ select,textarea,input{color:var(--ink)}
 .quick::-webkit-scrollbar{display:none}
 .quick button{flex-shrink:0;border:1px solid var(--line);background:transparent;color:var(--ink2);border-radius:18px;padding:7px 12px;font-size:13px;font-weight:600}
 .quick button.on{background:var(--ochre);border-color:var(--ochre);color:#1b120c}
+
+.final{margin:0 0 8px;background:#120c09;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.final img{display:block;width:100%;height:auto;max-height:none}
+@media(min-width:720px){.final img{max-width:560px;margin:0 auto}}
+.final figcaption{padding:10px 14px;color:var(--mute);font-size:13px;text-align:center}
