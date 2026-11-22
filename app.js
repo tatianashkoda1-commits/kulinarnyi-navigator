@@ -280,7 +280,7 @@ function vMy(sub) {
     if (!plan().plus) h += `<div class="lock"><b>Мои книги, меню и список покупок — в «фишках»</b>Одна полка с фишками — 990 ₽. <button class="btn sm" id="up" style="margin-top:8px">Посмотреть тарифы</button></div>`;
     else {
       h += `<div class="shelf">${S.menus.map(m => { const r0 = m.items[0] && R[m.items[0].id]; return bookCv(`#menu/${m.id}`, r0 ? r0.img : "img/logo-light.png", m.title, m.items.length + " " + pl(m.items.length, "блюдо", "блюда", "блюд")); }).join("")}</div><div class="list">${S.menus.length ? "" : `<div class="empty">Своих книг пока нет. В «Книге» у любого рецепта есть кнопка «+ В мою книгу»: соберите меню к празднику или книгу любимых блюд.</div>`}</div>
-        <div class="row" style="margin-top:12px"><button class="btn" id="newMenu">+ Новая книга</button><button class="btn ghost" id="readyMenu">Готовое меню от Тианы</button></div>`;
+        <div class="row" style="margin-top:12px"><button class="btn" id="newMenu">+ Новая книга</button><button class="btn ghost" id="readyMenu">Пример: книга соседки</button></div>`;
     }
   }
   if (sub === "bm") {
@@ -308,9 +308,9 @@ function li(r, right = "", extra = "") {
 function newMenu(title) { const id = Date.now().toString(36); S.menus.push({ id, title, items: [] }); save(); return id; }
 function readyMenu() {
   const pick = ["novyi-god", "kotlety", "rulety", "lenivaya", "rozhdestvo"].map(b => D.recipes.find(r => r.book === b && r.ings.length)).filter(Boolean);
-  const id = newMenu("Новогодний стол от Тианы");
+  const id = newMenu("Новогодний стол соседки");
   const m = S.menus.find(x => x.id === id); m.items = pick.map(r => ({ id: r.id, day: dayOf(r) })); save();
-  toast("Меню добавлено — его можно менять под себя"); location.hash = "#menu/" + id;
+  toast("Книга соседки сохранена — её можно менять под себя"); location.hash = "#menu/" + id;
 }
 
 const DAYS = { d7: "За неделю", d1: "Накануне", d0: "В день подачи" };
