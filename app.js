@@ -446,7 +446,7 @@ addEventListener("hashchange", route);
 function installHint() {
   const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone; let seen = false;
   try { seen = localStorage.getItem("nav-sheet") === "1"; } catch (_) {}
-  if (standalone || seen) return;
+  if (standalone || seen || /nosheet/.test(location.search)) return;
   const IOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const INAPP = /Instagram|FBAN|FBAV|Telegram|VKClient|WhatsApp/i.test(navigator.userAgent);
   setTimeout(() => {
