@@ -116,8 +116,7 @@ function vRecipe(id) {
     <div class="rh"><img src="${r.img}" alt=""><div class="rt"><span class="kk">${esc(r.dish)} · ${esc(r.kick)}</span><h1>${esc(r.title)}</h1>
     <a class="from" href="#c/${b.slug}">Из подборки «${esc(b.title)}» · ${esc(b.who)}</a></div></div>
     ${!own ? `<div class="lock"><b>Этот рецепт на другой полке</b>Вторая полка — ещё 690 ₽ в месяц. В прототипе рецепт открыт, чтобы посмотреть.</div>` : ""}
-    <div class="acts"><button id="bm">${S.bm.includes(id) ? "★ В закладках" : "☆ Закладка"}</button><button id="add">+ В сборник</button><button id="nt">✎ Заметка</button><button id="vid">▶ Видеоверсия</button>
-      <button id="sv" class="${saved ? "ok" : ""}">${saved ? "✓ Без интернета" : "↓ Сохранить"}</button></div>
+    <div class="acts"><button id="bm">${S.bm.includes(id) ? "★ В закладках" : "☆ Закладка"}</button><button id="add">+ В сборник</button><button id="nt">✎ Заметка</button><button id="sv" class="${saved ? "ok" : ""}">${saved ? "✓ Без интернета" : "↓ Сохранить"}</button><button id="vid" class="vid">▶ Видеоверсия</button></div>
     <div id="notebox" class="notebox" ${S.notes[id] ? "" : "hidden"}><textarea id="ta" placeholder="Моя заметка: сахара меньше, в моей духовке 35 минут">${esc(S.notes[id] || "")}</textarea><small>Видна только вам</small></div>
     ${r.intro ? `<p class="intro">${esc(r.intro)}</p>` : ""}
     ${r.badges.length ? `<div class="badges">${r.badges.map(x => `<span>${esc(x)}</span>`).join("")}</div>` : ""}
