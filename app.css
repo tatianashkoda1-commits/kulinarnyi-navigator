@@ -192,3 +192,5 @@ select,textarea,input{color:var(--ink)}
 
 .acts button.vid{background:var(--ochre);border-color:var(--ochre);color:#1b120c}
 .nav-bar button:last-child{background:#e8c46a;border-color:#e8c46a;color:#1b120c}
+
+.plancard{margin:0 0 12px}.plancard p{margin:4px 0 10px}

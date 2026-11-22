@@ -103,8 +103,8 @@ function dlBtn(b) {
 function addToMenu(id) {
   if (!plan().plus) { toast("Мои книги и меню — в тарифе с фишками"); return; }
   sheet(`<h3>Добавить «${esc(R[id].title)}»</h3><div class="opt">${S.menus.map(m => `<button data-m="${m.id}"><b>${esc(m.title)}</b><small>${m.items.length} блюд</small></button>`).join("")}<button data-new="1" class="on"><b>+ Новая книга</b></button></div>`);
-  $("#sheet").querySelectorAll("[data-m]").forEach(b => b.onclick = () => { const m = S.menus.find(x => x.id === b.dataset.m); if (!m.items.some(i => i.id === id)) m.items.push({ id, day: "d0" }); save(); closeSheet(); toast("Добавлено в книгу «" + m.title + "»"); });
-  $("#sheet").querySelector("[data-new]").onclick = () => { const t = prompt("Название книги", "Мой новогодний стол"); if (!t) return; const nid = newMenu(t); S.menus.find(x => x.id === nid).items.push({ id, day: "d0" }); save(); closeSheet(); toast("Книга «" + t + "» создана"); };
+  $("#sheet").querySelectorAll("[data-m]").forEach(b => b.onclick = () => { const m = S.menus.find(x => x.id === b.dataset.m); if (!m.items.some(i => i.id === id)) m.items.push({ id, day: dayOf(R[id]) }); save(); closeSheet(); toast("Добавлено в книгу «" + m.title + "»"); });
+  $("#sheet").querySelector("[data-new]").onclick = () => { const t = prompt("Название книги", "Мой новогодний стол"); if (!t) return; const nid = newMenu(t); S.menus.find(x => x.id === nid).items.push({ id, day: dayOf(R[id]) }); save(); closeSheet(); toast("Книга «" + t + "» создана"); };
 }
 const assets = r => [r.img, ...r.srows.map(s => s.v).filter(Boolean)];
 function vRecipe(id) {
@@ -245,11 +245,24 @@ function newMenu(title) { const id = Date.now().toString(36); S.menus.push({ id,
 function readyMenu() {
   const pick = ["novyi-god", "kotlety", "rulety", "lenivaya", "rozhdestvo"].map(b => D.recipes.find(r => r.book === b && r.ings.length)).filter(Boolean);
   const id = newMenu("Новогодний стол от Тианы");
-  const m = S.menus.find(x => x.id === id); m.items = pick.map((r, i) => ({ id: r.id, day: ["d0", "d1", "d1", "d1", "d7"][i] || "d0" })); save();
+  const m = S.menus.find(x => x.id === id); m.items = pick.map(r => ({ id: r.id, day: dayOf(r) })); save();
   toast("Меню добавлено — его можно менять под себя"); location.hash = "#menu/" + id;
 }
 
-const DAYS = { d7: "За неделю", d1: "За день", d0: "В сам день" };
+const DAYS = { d7: "За неделю", d1: "Накануне", d0: "В день подачи" };
+// автоплан: когда готовить блюдо, по типу блюда и по тексту рецепта (выдержка, ночь в холодильнике, созревание)
+function autoDay(r) {
+  const t = (r.title + " " + r.badges.join(" ") + " " + r.srows.map(x => x.h + " " + x.p).join(" ")).toLowerCase();
+  if (r.dish === "Колбасы и деликатесы") return ["d7", "долгая выдержка — начать заранее"];
+  if (/штоллен|кекс|панфорте|цукат|рикотт/.test(r.title.toLowerCase())) return ["d7", "созревает и хранится — печь заранее"];
+  if (/ёлк|канапе|тарталет|брускет/.test(r.title.toLowerCase())) return ["d0", "собрать перед подачей, чтобы всё было свежим"];
+  if (/сутк|на ночь|ночь в|12\s?ч|24\s?ч|8\s?ч|не менее \d+ ч|дн(я|ей) в холод/.test(t)) return ["d1", "начать накануне: маринад или выдержка в холодильнике"];
+  if (["Торты", "Пирожные и десерты", "Закуски и рулеты", "Печенье"].includes(r.dish)) return ["d1", "вкуснее, когда постоит, — сделать накануне"];
+  if (r.dish === "Салаты") return ["d0", "собрать перед подачей, овощи можно отварить накануне"];
+  if (r.dish === "Напитки и коктейли") return ["d0", "смешать перед подачей"];
+  return ["d0", "готовить в день подачи — подаётся горячим или свежим"];
+}
+const dayOf = r => autoDay(r)[0];
 function vMenu(id, tab) {
   const m = S.menus.find(x => x.id === id); if (!m) { location.hash = "#my/menus"; return; }
   tab = tab || "dishes";
@@ -259,7 +272,7 @@ function vMenu(id, tab) {
   const items = m.items.filter(it => R[it.id]);
   if (!items.length) h += `<div class="empty">В меню пока нет блюд. Откройте любую книгу на «Полках» и нажмите «+ В меню» у рецепта.</div>`;
   else if (tab === "dishes") h += `<div class="list">${items.map(it => li(R[it.id], `<select data-day="${it.id}" aria-label="Когда готовить">${Object.entries(DAYS).map(([k, t]) => `<option value="${k}" ${it.day === k ? "selected" : ""}>${t}</option>`).join("")}</select><button class="x" data-rm="${it.id}" aria-label="Убрать">×</button>`)).join("")}</div>`;
-  else if (tab === "plan") h += Object.entries(DAYS).map(([k, t]) => { const xs = items.filter(it => (it.day || "d0") === k); return xs.length ? `<div class="grp">${t}</div><div class="list">${xs.map(it => li(R[it.id])).join("")}</div>` : ""; }).join("");
+  else if (tab === "plan") h += `<div class="card plancard"><b>Навигатор может составить план сам</b><p class="note">Разложит блюда по дням: что сделать за неделю, что накануне, что в день подачи. Потом можно поменять.</p><button class="btn" id="auto">✨ Составить план</button></div>` + Object.entries(DAYS).map(([k, t]) => { const xs = items.filter(it => (it.day || "d0") === k); return xs.length ? `<div class="grp">${t}</div><div class="list">${xs.map(it => li(R[it.id], "", esc(autoDay(R[it.id])[1]))).join("")}</div>` : ""; }).join("");
   else h += shopList(m, items);
   $("#view").innerHTML = h;
   $("#view").querySelectorAll("[data-day]").forEach(s => { s.onclick = e => e.preventDefault(); s.onchange = () => { m.items.find(x => x.id === s.dataset.day).day = s.value; save(); }; });
@@ -268,6 +281,7 @@ function vMenu(id, tab) {
   $("#ren").onclick = () => { const t = prompt("Название меню", m.title); if (t) { m.title = t; save(); vMenu(id, tab); } };
   $("#del").onclick = () => { if (confirm("Удалить меню?")) { S.menus = S.menus.filter(x => x.id !== id); save(); location.hash = "#my/menus"; } };
   $("#share").onclick = () => shareMenu(m);
+  const au = $("#auto"); if (au) au.onclick = () => { m.items.forEach(it => { if (R[it.id]) it.day = dayOf(R[it.id]); }); save(); toast("План составлен — можно поменять у блюда во вкладке «Блюда»"); vMenu(id, "plan"); };
 }
 const CATS = [["Мясо, птица, рыба", /свин|говя|кури|фарш|мяс|филе|бекон|ветчин|телят|баран|индей|печен|рыб|лосос|кревет|колбас|грудин|шпик|сало|окорок|шея|утк/],
   ["Молочное и яйца", /молок|слив|сыр|творог|масло слив|сливочн|сметан|кефир|йогурт|яйц|желт|белк|маскарпоне|рикотт|моцарел/],
@@ -307,7 +321,7 @@ function vShare(code) {
     <h2>Ещё в книге</h2><div class="list">${rs.slice(1).map(r => `<div class="li" style="opacity:.6"><img src="${r.img}" alt=""><div class="t"><b>${esc(r.title)}</b><small>🔒 откроется с подпиской</small></div></div>`).join("")}</div>
     <div class="card" style="margin-top:16px"><b>Открыть все рецепты</b><p class="note">Книга сохранится на полке и будет работать без интернета. В настоящем приложении здесь будет оплата; автору книги — месяц в подарок.</p>
     <div class="row"><button class="btn" id="take">Сохранить меню себе</button></div></div>`;
-  $("#take").onclick = () => { const id = newMenu(o.t); S.menus.find(x => x.id === id).items = rs.map(r => ({ id: r.id, day: "d0" })); save(); toast("Меню сохранено в «Мою полку»"); location.hash = "#menu/" + id; };
+  $("#take").onclick = () => { const id = newMenu(o.t); S.menus.find(x => x.id === id).items = rs.map(r => ({ id: r.id, day: dayOf(r) })); save(); toast("Меню сохранено в «Мою полку»"); location.hash = "#menu/" + id; };
 }
 
 // ——— офлайн: сохранение книги в телефон
@@ -343,7 +357,7 @@ addEventListener("hashchange", route);
   for (const r of D.recipes) R[r.id] = r;
   if (/[?&]demo/.test(location.search) && !S.menus.length) {   // ?demo — заполненный пример для показа
     const pick = ["novyi-god", "kotlety", "rulety", "lenivaya", "rozhdestvo"].map(b => D.recipes.find(r => r.book === b && r.ings.length)).filter(Boolean);
-    S.menus.push({ id: "demo", title: "Новогодний стол 2027", items: pick.map((r, i) => ({ id: r.id, day: ["d0", "d1", "d1", "d1", "d7"][i] })) });
+    S.menus.push({ id: "demo", title: "Новогодний стол 2027", items: pick.map(r => ({ id: r.id, day: dayOf(r) })) });
     S.bm = pick.slice(0, 2).map(r => r.id); S.notes[pick[0].id] = "Делаю за час до гостей, сыр нарезаю кубиками"; save();
   }
   if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(() => {});
