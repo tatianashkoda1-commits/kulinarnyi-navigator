@@ -1,6 +1,6 @@
 // Навигатор: один сервис-воркер на приложение и все книги (основа — сервис-воркер «Моей полки» ХулиФуда).
 // Приложение кешируется при установке; книга — целиком по кнопке «На полку»; видео отдаются из кеша нарезкой 206 (иначе на iPhone офлайн не играет).
-const C = "nav-v2";
+const C = "nav-v3";
 const SHELL = ["./", "index.html", "app.js", "app.css", "inbook.js", "inbook.css", "manifest.webmanifest", "data.json", "files.json", "img/logo.png", "img/logo-light.png", "img/icon-192.png", "img/icon-512.png"];
 self.addEventListener("install", e => { self.skipWaiting(); e.waitUntil(caches.open(C).then(c => c.addAll(SHELL))); });
 self.addEventListener("activate", e => e.waitUntil((async () => { for (const k of await caches.keys()) if (k !== C) await caches.delete(k); await self.clients.claim(); })()));
@@ -46,5 +46,5 @@ self.addEventListener("fetch", e => {
   }
   // код приложения и data.json — сначала сеть (свежая версия), без сети из кеша; остальное — кеш, иначе сеть
   if (/data\.json|files\.json|\/(app\.js|app\.css|inbook\.js|inbook\.css|manifest\.webmanifest)$/.test(url)) { e.respondWith(fetch(req).then(r => { const cp = r.clone(); caches.open(C).then(c => c.put(url, cp)); return r; }).catch(() => caches.match(url))); return; }
-  e.respondWith(caches.match(url).then(hit => hit || fetch(req).then(r => { if ((r.ok || r.type === "opaque") && !/\.mp4$/.test(url)) { const cp = r.clone(); caches.open(C).then(c => c.put(url, cp)); } return r; })));
+  e.respondWith(caches.match(url).then(hit => (hit && hit.ok) ? hit : fetch(req).then(r => { if (r.ok && !/\.mp4$/.test(url)) { const cp = r.clone(); caches.open(C).then(c => c.put(url, cp)); } return r; })).catch(() => fetch(req)));
 });

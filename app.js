@@ -38,7 +38,8 @@ $("#planBtn").onclick = () => {
   sheet(`<h3>Тариф (в прототипе — переключатель)</h3><div class="opt">${Object.entries(PLANS).map(([k, p]) =>
     `<button data-p="${k}" class="${k === S.plan ? "on" : ""}"><b>${p.t} — ${p.p} в месяц</b><small>${p.d}</small></button>`).join("")}</div>
     <h3 style="margin-top:16px">Моя полка, если одна</h3><div class="seg">${Object.entries(SHELF).map(([k, t]) => `<button data-m="${k}" class="${S.main === k ? "on" : ""}">${t}</button>`).join("")}</div>
-    <p class="note">В настоящем приложении тариф выбирается при оплате. Здесь можно переключать, чтобы посмотреть, что открывается в каждом.</p>`);
+    <p class="note">В настоящем приложении тариф выбирается при оплате. Здесь можно переключать, чтобы посмотреть, что открывается в каждом.</p><button class="btn ghost" id="reset" style="width:100%;margin-top:8px">Обновить приложение (если что-то не грузится)</button>`);
+  $("#reset").onclick = async () => { try { for (const k of await caches.keys()) await caches.delete(k); const rs = await navigator.serviceWorker.getRegistrations(); for (const r of rs) await r.unregister(); } catch (_) {} location.reload(); };
   $("#sheet").querySelectorAll("[data-p]").forEach(b => b.onclick = () => { S.plan = b.dataset.p; save(); planBtn(); closeSheet(); route(); });
   $("#sheet").querySelectorAll("[data-m]").forEach(b => b.onclick = () => { S.main = b.dataset.m; save(); closeSheet(); route(); });
 };
