@@ -226,3 +226,27 @@ select,textarea,input{color:var(--ink)}
 .bkt{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:26px 10px 9px 14px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.85))}
 .bkt b{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font:700 13px/1.1 var(--display);text-transform:uppercase;color:var(--ochre)}
 .bkt small{display:block;font-size:10px;color:#e3d4c2;margin-top:3px}
+
+/* книжный шкаф */
+.cabinet{background:linear-gradient(90deg,#3a2414,#4a2e1a 3%,#2a1a0f 3.5%,#1a110b 50%,#2a1a0f 96.5%,#4a2e1a 97%,#3a2414);border-radius:16px;padding:10px 12px 4px;box-shadow:0 14px 34px rgba(0,0,0,.6),inset 0 0 0 1px #5b3a2255}
+.case{margin:0 0 6px}
+.caseh{display:flex;align-items:baseline;justify-content:space-between;padding:6px 4px 0}
+.caseh h3{margin:0;font:700 15px var(--display);text-transform:uppercase;letter-spacing:.04em;color:var(--ochre)}
+.caseh .all{border:0;background:transparent;color:var(--mute);font-size:12px;font-weight:700}
+.caserow{display:flex;gap:16px;align-items:flex-end;overflow-x:auto;padding:16px 10px 20px;perspective:900px;scrollbar-width:none;
+  background:linear-gradient(180deg,#6b4428 0,#4f311c 5px,#2c1b0f 15px) left bottom/100% 15px no-repeat local;
+  box-shadow:inset 0 14px 22px -10px rgba(0,0,0,.7)}
+.caserow::-webkit-scrollbar{display:none}
+.rb{flex:0 0 108px;height:150px;text-decoration:none;color:#fff;transform-style:preserve-3d;transform:rotateY(18deg);transform-origin:left bottom;transition:transform .42s cubic-bezier(.2,.8,.2,1),filter .3s}
+.rb:hover{transform:rotateY(8deg) translateY(-4px)}
+.rb.out{transform:rotateY(0) translateY(-16px) translateZ(40px) scale(1.12);filter:drop-shadow(0 18px 18px rgba(0,0,0,.7));z-index:5}
+.rbc{position:relative;display:block;width:100%;height:100%;border-radius:2px 7px 7px 2px;overflow:hidden;box-shadow:8px 8px 14px rgba(0,0,0,.65),inset 0 0 0 1px rgba(255,255,255,.07)}
+.rbc::before{content:"";position:absolute;inset:0;z-index:2;background:linear-gradient(90deg,rgba(0,0,0,.6) 0,rgba(255,255,255,.2) 5%,rgba(0,0,0,.18) 8%,rgba(0,0,0,0) 14%)}
+.rbc::after{content:"";position:absolute;top:0;bottom:0;right:-5px;width:6px;background:repeating-linear-gradient(180deg,#efe6d6 0 1px,#cfc3ae 1px 2px);transform:rotateY(90deg);transform-origin:left}
+.rb img{width:100%;height:100%;object-fit:cover;display:block}
+.rbt{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:24px 8px 8px 12px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.88))}
+.rbt b{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font:700 12px/1.1 var(--display);text-transform:uppercase;color:#fff}
+.rbt small{display:inline-block;margin-top:3px;font-size:10px;color:var(--ochre);font-weight:700}
+.caserow .bk{flex:0 0 108px}
+.caserow .bk .cov{width:108px;height:150px}
+@media (prefers-reduced-motion:reduce){.rb,.rb.out{transition:none}}

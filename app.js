@@ -62,7 +62,8 @@ function vShelves() {
     <div class="quick">${["", ...dishes].map(d => `<button class="${f.dish === d ? "on" : ""}" data-dish="${esc(d)}">${d || "Все"}</button>`).join("")}</div>
     ${f.theme ? `<div class="tags"><button data-theme="">${esc(f.theme)} ✕</button></div>` : ""}</div>`;
   if (!own) h += `<div class="lock"><b>Эта полка не входит в ваш тариф</b>Вторая полка — ещё 690 ₽ в месяц, фишки повторно не оплачиваются. <button class="btn sm" id="addShelf" style="margin-top:8px">Посмотреть тарифы</button></div>`;
-  h += `<p class="note">${q || f.dish || f.theme ? "Найдено" : "Все рецепты"}: ${list.length}</p>
+  if (!q && !f.dish && !f.theme) { h += caseHtml(sh, all, cols, m, mine); $("#view").innerHTML = h; wireShelves(f, dishes, themes); wireCase(); return; }
+  h += `<div class="row" style="justify-content:space-between"><p class="note">Найдено: ${list.length}</p><button class="btn sm ghost" id="toCase">← К полкам</button></div>
     <div class="grid">${list.slice(0, f.n).map(rcard).join("") || `<div class="empty" style="grid-column:1/-1">Ничего не нашлось. Попробуйте другое слово или сбросьте фильтры.</div>`}</div>
     ${list.length > f.n ? `<div class="row" style="justify-content:center;margin-top:12px"><button class="btn ghost" id="more">Показать ещё</button></div>` : ""}
     <h2 style="margin-top:30px">Подборки</h2>
@@ -72,6 +73,11 @@ function vShelves() {
     ${sh === "pastry" ? `<h2>Готовится из архива</h2><div class="list">${SOON_PASTRY.map(([t, n]) => `<div class="li soon"><div class="t"><b>${t}</b><small>${n} рецептов переносятся из архива клуба</small></div><span class="pill o">Скоро</span></div>`).join("")}</div>` : ""}
     <p class="proto">Прототип Кулинарного навигатора · данные хранятся только в этом телефоне</p>`;
   $("#view").innerHTML = h;
+  wireShelves(f, dishes, themes);
+  const tc = $("#toCase"); if (tc) tc.onclick = () => { f.q = ""; f.dish = ""; f.theme = ""; save(); vShelves(); };
+  wireCards();
+}
+function wireShelves(f, dishes, themes) {
   $("#view").querySelectorAll("[data-sh]").forEach(b => b.onclick = () => { S.tab = b.dataset.sh; save(); vShelves(); });
   $("#view").querySelectorAll("[data-dish]").forEach(b => b.onclick = () => { f.dish = b.dataset.dish; f.n = 24; save(); vShelves(); });
   $("#view").querySelectorAll("[data-theme]").forEach(b => b.onclick = () => { f.theme = b.dataset.theme; f.n = 24; save(); vShelves(); });
@@ -86,8 +92,39 @@ function vShelves() {
   const qi = $("#q"); let tm; qi.oninput = () => { clearTimeout(tm); tm = setTimeout(() => { f.q = qi.value; f.n = 24; save(); const pos = qi.selectionStart; vShelves(); const n = $("#q"); n.focus(); n.setSelectionRange(pos, pos); }, 300); };
   const mo = $("#more"); if (mo) mo.onclick = () => { f.n += 24; save(); vShelves(); };
   const a = $("#addShelf"); if (a) a.onclick = () => $("#planBtn").click();
-  wireCards();
 }
+
+// ——— книжный шкаф: полки по темам, рецепты — книги, чуть развёрнутые; при нажатии книга выдвигается
+const rbook = r => `<a class="rb" href="#r/${r.id}" data-pull="${r.id}"><span class="rbc"><img src="${r.img}" alt="" loading="lazy"><span class="rbt"><b>${esc(r.title)}</b>${cookLog(r.id).length ? `<small>✓ ${cookLog(r.id).length}</small>` : ""}</span></span></a>`;
+function shelfRow(title, items, more) {
+  if (!items.length) return "";
+  return `<section class="case"><div class="caseh"><h3>${esc(title)}</h3>${more ? `<button class="all" ${more}>Все ${items.length > 0 ? "→" : ""}</button>` : ""}</div>
+    <div class="caserow">${items.join("")}</div></section>`;
+}
+function caseHtml(sh, all, cols, m, mine) {
+  const theme = sh === "cook" ? "Новый год" : "Рождество";
+  const rec = [...all.filter(r => m && r.book === m.slug), ...all.filter(r => r.themes.includes(theme) && (!m || r.book !== m.slug))].slice(0, 14);
+  const byDish = {}; all.forEach(r => (byDish[r.dish] = byDish[r.dish] || []).push(r));
+  const order = Object.entries(byDish).sort((a, b) => b[1].length - a[1].length);
+  let h = `<div class="cabinet">` + shelfRow("Навигатор рекомендует", rec.map(rbook));
+  for (const [d, rs] of order) h += shelfRow(d, rs.slice(0, 14).map(rbook), `data-dish="${esc(d)}"`);
+  h += shelfRow("Подборки шефов", cols.map(b => bookCv(`#c/${b.slug}`, `img/${b.slug}.jpg`, b.title, b.n + " рецептов")));
+  h += `</div>`;
+  const fav = Object.entries(S.cooked || {}).filter(([id, l]) => l.length >= 3 && R[id]).map(([id]) => R[id]);
+  const bms = S.bm.map(id => R[id]).filter(Boolean);
+  const mineRows = shelfRow("Мои книги", mine.map(x => { const r0 = R[x.items[0].id]; return bookCv(`#menu/${x.id}`, r0 ? r0.img : "", x.title, x.items.length + " " + pl(x.items.length, "блюдо", "блюда", "блюд")); }))
+    + shelfRow("Моё любимое", fav.map(rbook)) + shelfRow("Закладки", bms.map(rbook));
+  if (mineRows) h += `<h2 style="margin-top:26px">Мои полки</h2><div class="cabinet mine">${mineRows}</div>`;
+  if (sh === "pastry") h += `<h2>Готовится из архива</h2><div class="list">${SOON_PASTRY.map(([t, n]) => `<div class="li soon"><div class="t"><b>${t}</b><small>${n} рецептов переносятся из архива клуба</small></div><span class="pill o">Скоро</span></div>`).join("")}</div>`;
+  return h + `<p class="proto">Прототип Кулинарного навигатора · данные хранятся только в этом телефоне</p>`;
+}
+function wireCase() {
+  $("#view").querySelectorAll("[data-pull]").forEach(a => a.onclick = e => {
+    e.preventDefault(); if (a.classList.contains("out")) return;
+    a.classList.add("out"); setTimeout(() => { location.hash = "#r/" + a.dataset.pull; }, 420);
+  });
+}
+
 function wireCards() {
   $("#view").querySelectorAll("[data-bm]").forEach(b => b.onclick = e => { e.preventDefault(); const id = b.dataset.bm; S.bm = S.bm.includes(id) ? S.bm.filter(x => x !== id) : [...S.bm, id]; save(); b.textContent = S.bm.includes(id) ? "★" : "☆"; toast(S.bm.includes(id) ? "В закладках" : "Убрано из закладок"); });
   $("#view").querySelectorAll("[data-add]").forEach(b => b.onclick = e => { e.preventDefault(); addToMenu(b.dataset.add); });
