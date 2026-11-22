@@ -90,3 +90,18 @@ textarea{width:100%;min-height:90px;border:1px solid var(--line);border-radius:1
 .prog i{display:block;height:100%;background:var(--terra);width:0}
 .proto{margin-top:28px;font-size:12px;color:var(--mute);text-align:center}
 a:focus-visible,button:focus-visible{outline:2px solid var(--ochre);outline-offset:2px}
+
+.hs{display:flex;gap:10px;overflow-x:auto;padding:0 4px 6px;margin:0 -4px;scroll-snap-type:x proximity}
+.hs .col{flex:0 0 132px;scroll-snap-align:start;display:flex;flex-direction:column;gap:6px}
+.hs .col a{text-decoration:none;color:var(--ink)}
+.hs .col img{width:132px;height:132px;object-fit:cover;border-radius:14px;display:block;background:var(--cream2)}
+.hs .col b{display:block;font-size:13px;line-height:1.25;margin-top:6px}
+.hs .col small{color:var(--mute);font-size:12px}
+.search{width:100%;height:46px;border:1px solid var(--line);border-radius:23px;padding:0 16px;font:inherit;background:#fff;margin:0 0 10px}
+.fl{margin:0 0 6px}
+.fl>span{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);margin:0 0 6px}
+.fl .chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;margin:0}
+.fl .chip{flex-shrink:0}
+.ra{display:flex;gap:6px;padding:0 10px 10px}
+.ra button{border:1px solid var(--line);background:#fff;border-radius:14px;padding:6px 9px;font-size:12px;font-weight:700;color:var(--ink)}
+.ra button:last-child{flex:1;border-color:var(--terra);color:var(--terra)}
