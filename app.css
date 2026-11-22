@@ -247,3 +247,5 @@ select.search{appearance:auto;color:var(--ink);background:#120c09}
 .notebox{background:var(--ochreS);border:1px solid #e8c46a55;border-radius:14px;padding:10px 12px}
 .nbh{display:block;color:var(--ochre);font-size:13px;margin:0 0 6px}
 .notebox textarea{background:#120c09;min-height:70px}
+
+.seg>a{font-size:13px;padding:0 4px}

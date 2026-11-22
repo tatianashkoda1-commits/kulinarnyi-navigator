@@ -269,7 +269,7 @@ function wallUpload(file, sub, dishId) {
 
 function vMy(sub) {
   sub = sub || "books";
-  let h = `<h1>Моя полка</h1><div class="seg">${[["books", "Скачано"], ["menus", "Мои книги"], ["bm", "Закладки"], ["notes", "Дневник"]].map(([k, t]) => `<a href="#my/${k}" class="${k === sub ? "on" : ""}" style="text-decoration:none;display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:20px;font-weight:700;${k === sub ? "background:var(--terra);color:#fff" : "color:var(--ink2)"}">${t}</a>`).join("")}</div>`;
+  let h = `<h1>Моя полка</h1><div class="seg">${[["books", "Скачано"], ["menus", "Мои книги"], ["friends", "От друзей"], ["bm", "Закладки"], ["notes", "Дневник"]].map(([k, t]) => `<a href="#my/${k}" class="${k === sub ? "on" : ""}" style="text-decoration:none;display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:20px;font-weight:700;${k === sub ? "background:var(--terra);color:#fff" : "color:var(--ink2)"}">${t}</a>`).join("")}</div>`;
   if (sub === "books") {
     const rs = Object.keys(S.saved).filter(k => k.startsWith("r:")).map(k => R[k.slice(2)]).filter(Boolean);
     const cs = Object.keys(S.saved).filter(k => k.startsWith("c:")).map(k => bookOf(k.slice(2))).filter(Boolean);
@@ -282,9 +282,18 @@ function vMy(sub) {
     else {
       const own = S.menus.filter(m => !m.friend), fr = S.menus.filter(m => m.friend);
       const cv = (m, sub) => { const r0 = m.items[0] && R[m.items[0].id]; return bookCv(`#menu/${m.id}`, r0 ? r0.img : "img/logo-light.png", m.title, sub); };
-      h += `<h2 style="margin-top:4px">Мои книги</h2>${own.length ? `<div class="shelf">${own.map(m => cv(m, m.items.length + " " + pl(m.items.length, "блюдо", "блюда", "блюд"))).join("")}</div>` : `<div class="empty">Своих книг пока нет. В «Книге» у любого рецепта есть кнопка «+ В мою книгу»: соберите меню к празднику или книгу любимых блюд.</div>`}
-        <h2>Книги друзей</h2>${fr.length ? `<div class="shelf">${fr.map(m => cv(m, "от " + m.friend)).join("")}</div>` : `<div class="empty">Здесь будут книги, которые вам прислали подруги и соседки. Откройте их ссылку и нажмите «Сохранить себе».</div>`}
-        <div class="row" style="margin-top:12px"><button class="btn" id="newMenu">+ Новая книга</button><button class="btn ghost" id="readyMenu">Пример: книга соседки</button></div>`;
+      h += own.length ? `<div class="shelf">${own.map(m => cv(m, m.items.length + " " + pl(m.items.length, "блюдо", "блюда", "блюд"))).join("")}</div>` : `<div class="empty">Своих книг пока нет. В «Книге» у любого рецепта есть кнопка «+ В мою книгу»: соберите меню к празднику или книгу любимых блюд.</div>`;
+      h += `<div class="row" style="margin-top:12px"><button class="btn" id="newMenu">+ Новая книга</button></div>`;
+    }
+  }
+  if (sub === "friends") {
+    if (!plan().plus) h += `<div class="lock"><b>Книги друзей — в «фишках»</b>Одна полка с фишками — 990 ₽. <button class="btn sm" id="up" style="margin-top:8px">Посмотреть тарифы</button></div>`;
+    else {
+      const fr = S.menus.filter(m => m.friend);
+      h += `<p class="sub">Книги, которые вам прислали подруги и соседки. Сохранённая книга — ваша копия: её можно менять.</p>`
+        + (fr.length ? `<div class="shelf">${fr.map(m => { const r0 = m.items[0] && R[m.items[0].id]; return bookCv(`#menu/${m.id}`, r0 ? r0.img : "img/logo-light.png", m.title, "от " + m.friend); }).join("")}</div>`
+          : `<div class="empty">Пока пусто. Когда подруга пришлёт ссылку на свою книгу, откройте её и нажмите «Сохранить себе».</div>`)
+        + `<div class="row" style="margin-top:12px"><button class="btn ghost" id="readyMenu">Пример: книга соседки</button></div>`;
     }
   }
   if (sub === "bm") {
