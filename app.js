@@ -57,9 +57,10 @@ function vShelves() {
   const mine = S.menus.filter(x => x.items.length);
   let h = `<div class="hero"><h1>Кулинарная книга</h1><p class="sub">${D.recipes.length} рецептов шефов с видео каждого шага. Ищите по блюду или продукту.</p>
     <div class="seg">${Object.entries(SHELF).map(([k, t]) => `<button data-sh="${k}" class="${k === sh ? "on" : ""}">${t} · ${D.recipes.filter(r => r.shelf === k).length}</button>`).join("")}</div>
-    <input class="search" id="q" type="search" placeholder="Что приготовить? курица, творог, штоллен…" value="${esc(f.q)}" aria-label="Поиск по рецептам">
-    <div class="fl"><div class="chips">${["", ...dishes].map(d => `<button class="chip ${f.dish === d ? "on" : ""}" data-dish="${esc(d)}">${d || "Все блюда"}</button>`).join("")}</div></div>
-    <div class="fl"><div class="chips">${["", ...themes].map(d => `<button class="chip t ${f.theme === d ? "on" : ""}" data-theme="${esc(d)}">${d || "Любой повод"}</button>`).join("")}</div></div></div>`;
+    <div class="sbox"><label class="sfield"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Что приготовить?" value="${esc(f.q)}" aria-label="Поиск по рецептам"></label>
+      <button class="fbtn" id="filt" type="button"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Фильтры${(f.dish ? 1 : 0) + (f.theme ? 1 : 0) ? ` <span class="dot">${(f.dish ? 1 : 0) + (f.theme ? 1 : 0)}</span>` : ""}</button></div>
+    <div class="quick">${["", ...dishes].map(d => `<button class="${f.dish === d ? "on" : ""}" data-dish="${esc(d)}">${d || "Все"}</button>`).join("")}</div>
+    ${f.theme ? `<div class="tags"><button data-theme="">${esc(f.theme)} ✕</button></div>` : ""}</div>`;
   if (!own) h += `<div class="lock"><b>Эта полка не входит в ваш тариф</b>Вторая полка — ещё 690 ₽ в месяц, фишки повторно не оплачиваются. <button class="btn sm" id="addShelf" style="margin-top:8px">Посмотреть тарифы</button></div>`;
   h += `<p class="note">${q || f.dish || f.theme ? "Найдено" : "Все рецепты"}: ${list.length}</p>
     <div class="grid">${list.slice(0, f.n).map(rcard).join("") || `<div class="empty" style="grid-column:1/-1">Ничего не нашлось. Попробуйте другое слово или сбросьте фильтры.</div>`}</div>
@@ -74,6 +75,14 @@ function vShelves() {
   $("#view").querySelectorAll("[data-sh]").forEach(b => b.onclick = () => { S.tab = b.dataset.sh; save(); vShelves(); });
   $("#view").querySelectorAll("[data-dish]").forEach(b => b.onclick = () => { f.dish = b.dataset.dish; f.n = 24; save(); vShelves(); });
   $("#view").querySelectorAll("[data-theme]").forEach(b => b.onclick = () => { f.theme = b.dataset.theme; f.n = 24; save(); vShelves(); });
+  $("#filt").onclick = () => {
+    sheet(`<h3>Фильтры</h3><div class="grp">Тип блюда</div><div class="chips">${["", ...dishes].map(d => `<button class="chip ${f.dish === d ? "on" : ""}" data-fd="${esc(d)}">${d || "Все блюда"}</button>`).join("")}</div>
+      <div class="grp">Повод</div><div class="chips">${["", ...themes].map(d => `<button class="chip ${f.theme === d ? "on" : ""}" data-ft="${esc(d)}">${d || "Любой"}</button>`).join("")}</div>
+      <button class="btn" id="fok" style="width:100%;margin-top:10px">Показать рецепты</button>`);
+    $("#sheet").querySelectorAll("[data-fd]").forEach(b => b.onclick = () => { f.dish = b.dataset.fd; $("#sheet").querySelectorAll("[data-fd]").forEach(x => x.classList.toggle("on", x === b)); });
+    $("#sheet").querySelectorAll("[data-ft]").forEach(b => b.onclick = () => { f.theme = b.dataset.ft; $("#sheet").querySelectorAll("[data-ft]").forEach(x => x.classList.toggle("on", x === b)); });
+    $("#fok").onclick = () => { f.n = 24; save(); closeSheet(); vShelves(); };
+  };
   const qi = $("#q"); let tm; qi.oninput = () => { clearTimeout(tm); tm = setTimeout(() => { f.q = qi.value; f.n = 24; save(); const pos = qi.selectionStart; vShelves(); const n = $("#q"); n.focus(); n.setSelectionRange(pos, pos); }, 300); };
   const mo = $("#more"); if (mo) mo.onclick = () => { f.n += 24; save(); vShelves(); };
   const a = $("#addShelf"); if (a) a.onclick = () => $("#planBtn").click();
