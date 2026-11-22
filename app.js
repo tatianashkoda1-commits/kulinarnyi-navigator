@@ -2,7 +2,7 @@
 const KEY = "nav1";
 const PLANS = {
   shelf:   { t: "Одна полка", p: "690 ₽", plus: false, two: false, d: "Книги одной полки, все конструкторы, заметки, закладки, офлайн, общение" },
-  plus:    { t: "Одна полка с фишками", p: "990 ₽", plus: true, two: false, d: "+ видео полки, мои меню и план, список покупок, свои книги и обмен" },
+  plus:    { t: "Одна полка с фишками", p: "990 ₽", plus: true, two: false, d: "+ мои меню и план, список покупок, свои сборники и обмен ими" },
   two:     { t: "Две полки", p: "1 380 ₽", plus: false, two: true, d: "Обе полки и все конструкторы, без фишек" },
   twoplus: { t: "Две полки с фишками", p: "1 680 ₽", plus: true, two: true, d: "Всё сразу. Фишки оплачиваются один раз" },
 };
@@ -108,17 +108,20 @@ function vBuilders() {
     <p class="note" style="margin-top:14px">Конструкторы открываются в новой вкладке. Картинка блюда от ИИ генерируется по коду доступа команды.</p>`;
 }
 
-function vVideo() {
-  let h = `<h1>Видео</h1><p class="sub">Видеоархив уроков, по полкам. Смотрится при интернете.</p>`;
-  if (!plan().plus) { $("#view").innerHTML = h + `<div class="lock"><b>Видеоархив входит в «фишки»</b>Одна полка с фишками — 990 ₽ в месяц. <button class="btn sm" id="up" style="margin-top:8px">Посмотреть тарифы</button></div>`; $("#up").onclick = () => $("#planBtn").click(); return; }
-  const sh = S.tab;
-  h += `<div class="seg">${Object.entries(SHELF).map(([k, t]) => `<button data-sh="${k}" class="${k === sh ? "on" : ""}">${t}</button>`).join("")}</div>`;
-  if (!hasShelf(sh)) h += `<div class="lock"><b>Эта полка не в вашем тарифе</b>Видео открываются для ваших полок.</div>`;
-  const demo = D.recipes.filter(r => r.shelf === sh && r.steps).slice(0, 4);
-  h += `<h2>Примеры из уроков</h2><div class="grid">${demo.map(r => `<div class="book"><video src="books/${r.book}/clips/${r.rid.slice(1)}-1.mp4" muted loop playsinline preload="none" controls style="width:100%;aspect-ratio:1/1;object-fit:cover;background:#000"></video><div class="bt"><b>${esc(r.title)}</b><small>${esc(bookOf(r.book).title)}</small></div></div>`).join("")}</div>
-    <h2>Разделы архива</h2><div class="list">${VIDEO_CATS[sh].map(([t, n]) => `<div class="li"><div class="t"><b>${t}</b><small>${n} уроков · переносятся из архива клуба</small></div><span class="pill o">Скоро</span></div>`).join("")}</div>`;
-  $("#view").innerHTML = h;
-  $("#view").querySelectorAll("[data-sh]").forEach(b => b.onclick = () => { S.tab = b.dataset.sh; save(); vVideo(); });
+function vClub() {
+  $("#view").innerHTML = `<h1>Клуб Планета Х</h1><p class="sub">Полные видеоуроки шефов и живое общение с ними — это клуб. Приложение — библиотека и инструменты, клуб — школа.</p>
+    <div class="card" style="border-color:var(--terra)"><div class="list" style="gap:10px">
+      <div><b>2 000+ полных видеоуроков</b><br><span class="note">Весь архив клуба: смотреть, как готовит шеф, с объяснениями</span></div>
+      <div><b>Свежие уроки каждый месяц</b><br><span class="note">8 или 16 уроков от шефов клуба</span></div>
+      <div><b>Ответы шефов и кураторов</b><br><span class="note">Обратная связь по вашим блюдам</span></div>
+      <div><b>Розыгрыши ценной техники</b><br><span class="note">На ПРО — двойные шансы</span></div>
+    </div></div>
+    <h2>Тарифы клуба</h2><div class="list">
+      <div class="li"><div class="t"><b>Стандарт — 1 490 ₽ в месяц</b><small>8 уроков в месяц, поддержка шефов и кураторов, розыгрыши</small></div></div>
+      <div class="li"><div class="t"><b>ПРО — 2 490 ₽ в месяц</b><small>16 уроков в месяц, всё из стандарта, двойные шансы в розыгрышах</small></div></div></div>
+    <div class="row" style="margin-top:14px"><a class="btn" href="https://xplanet.club" target="_blank" rel="noopener">Перейти в клуб</a></div>
+    <h2>Видеоурок к одному рецепту</h2><p class="note">Не хотите весь клуб — у каждого рецепта в книге есть кнопка «▶ Видеоурок шефа»: полный урок именно по этому блюду можно купить разово.</p>
+    <p class="note" style="margin-top:10px">Как участники клуба получают приложение, ещё решается.</p>`;
 }
 
 const SEED = [
@@ -269,7 +272,7 @@ function route() {
   document.querySelectorAll("#tabs a").forEach(x => x.classList.toggle("on", x.dataset.t === (a === "menu" ? "my" : a.startsWith("share") ? "" : a)));
   planBtn(); window.scrollTo(0, 0);
   if (a.startsWith("share=")) return vShare(h.slice(6));
-  ({ shelves: vShelves, builders: vBuilders, video: vVideo, chat: vChat, my: () => vMy(b), menu: () => vMenu(b, c) }[a] || vShelves)();
+  ({ shelves: vShelves, builders: vBuilders, club: vClub, chat: vChat, my: () => vMy(b), menu: () => vMenu(b, c) }[a] || vShelves)();
 }
 addEventListener("hashchange", route);
 (async () => {

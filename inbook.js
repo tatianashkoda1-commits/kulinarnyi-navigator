@@ -22,19 +22,24 @@
     const bar = document.createElement("div"); bar.className = "nav-bar";
     const bm = document.createElement("button"), mn = document.createElement("button"), nt = document.createElement("button");
     const paint = () => { const on = S.bm.includes(id); bm.textContent = on ? "★ В закладках" : "☆ Закладка"; bm.classList.toggle("on", on); nt.textContent = S.notes[id] ? "✎ Моя заметка" : "✎ Заметка"; nt.classList.toggle("on", !!S.notes[id]); };
-    mn.textContent = "+ В меню";
+    mn.textContent = "+ В сборник";
+    const vid = document.createElement("button"); vid.textContent = "▶ Видеоурок шефа";
+    vid.onclick = () => { const s = sheet(`<h3>Видеоурок «${esc(title)}»</h3><p>Полный урок шефа именно по этому блюду: как готовит, на что обратить внимание, ответы на частые вопросы.</p>
+      <button class="pri" id="buy">Купить урок · цена уточняется</button><button id="club">Все видеоуроки и шефы — в клубе</button><p style="font-size:12px;color:#7A6F65">В прототипе покупка не работает.</p>`);
+      s.querySelector("#buy").onclick = () => { s.remove(); toast("В прототипе покупка не подключена"); };
+      s.querySelector("#club").onclick = () => { location.href = "../../#club"; }; };
     bm.onclick = () => { S.bm = S.bm.includes(id) ? S.bm.filter(x => x !== id) : [...S.bm, id]; save(); paint(); toast(S.bm.includes(id) ? "Добавлено в закладки" : "Убрано из закладок"); };
     const box = document.createElement("div"); box.className = "nav-note";
     box.innerHTML = `<textarea placeholder="Например: сахара меньше, в моей духовке 35 минут">${esc(S.notes[id] || "")}</textarea><small>Заметка видна только вам и сохраняется в «Моей полке»</small>`;
     const ta = box.querySelector("textarea"); ta.oninput = () => { S.notes[id] = ta.value; save(); paint(); };
     nt.onclick = () => { box.classList.toggle("open"); if (box.classList.contains("open")) ta.focus(); };
     mn.onclick = () => {
-      if (!PLUS[S.plan]) { toast("Мои меню — в тарифе с фишками"); return; }
-      const s = sheet(`<h3>Добавить «${esc(title)}» в меню</h3>${S.menus.map(m => `<button data-m="${m.id}">${esc(m.title)} · ${m.items.length} блюд</button>`).join("")}<button class="pri" data-new="1">+ Новое меню</button>`);
+      if (!PLUS[S.plan]) { toast("Свои сборники и меню — в тарифе с фишками"); return; }
+      const s = sheet(`<h3>Добавить «${esc(title)}» в сборник</h3>${S.menus.map(m => `<button data-m="${m.id}">${esc(m.title)} · ${m.items.length} блюд</button>`).join("")}<button class="pri" data-new="1">+ Новый сборник</button>`);
       s.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { const m = S.menus.find(x => x.id === b.dataset.m); if (!m.items.some(i => i.id === id)) m.items.push({ id, day: "d0" }); save(); s.remove(); toast("Добавлено в «" + m.title + "»"); });
       s.querySelector("[data-new]").onclick = () => { const t = prompt("Название меню", "Новогодний стол 2027"); if (!t) return; S.menus.push({ id: Date.now().toString(36), title: t, items: [{ id, day: "d0" }] }); save(); s.remove(); toast("Меню «" + t + "» создано"); };
     };
-    bar.append(bm, mn, nt); paint();
+    bar.append(bm, mn, nt, vid); paint();
     const cap = a.querySelector(".rhero .cap") || a.querySelector("header") || a;
     cap.appendChild(bar); cap.appendChild(box);
   });
