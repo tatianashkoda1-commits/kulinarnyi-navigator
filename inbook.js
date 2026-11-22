@@ -22,7 +22,7 @@
     const bar = document.createElement("div"); bar.className = "nav-bar";
     const bm = document.createElement("button"), mn = document.createElement("button"), nt = document.createElement("button");
     const paint = () => { const on = S.bm.includes(id); bm.textContent = on ? "★ В закладках" : "☆ Закладка"; bm.classList.toggle("on", on); nt.textContent = S.notes[id] ? "✎ Моя заметка" : "✎ Заметка"; nt.classList.toggle("on", !!S.notes[id]); };
-    mn.textContent = "+ В сборник";
+    mn.textContent = "+ В мою книгу";
     const vid = document.createElement("button"); vid.textContent = "▶ Видеоверсия";
     vid.onclick = () => { const s = sheet(`<h3>Видеоверсия рецепта</h3><p>Шеф готовит это блюдо на видео от начала до конца.</p>
       <button class="pri" id="buy">Купить видеоверсию · цена уточняется</button><button id="club">Все видео — в клубе</button><p style="font-size:12px;color:#7A6F65">В прототипе покупка не работает.</p>`);
@@ -34,9 +34,9 @@
     const ta = box.querySelector("textarea"); ta.oninput = () => { S.notes[id] = ta.value; save(); paint(); };
     nt.onclick = () => { box.classList.toggle("open"); if (box.classList.contains("open")) ta.focus(); };
     mn.onclick = () => {
-      if (!PLUS[S.plan]) { toast("Свои сборники и меню — в тарифе с фишками"); return; }
-      const s = sheet(`<h3>Добавить «${esc(title)}» в сборник</h3>${S.menus.map(m => `<button data-m="${m.id}">${esc(m.title)} · ${m.items.length} блюд</button>`).join("")}<button class="pri" data-new="1">+ Новый сборник</button>`);
-      s.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { const m = S.menus.find(x => x.id === b.dataset.m); if (!m.items.some(i => i.id === id)) m.items.push({ id, day: "d0" }); save(); s.remove(); toast("Добавлено в «" + m.title + "»"); });
+      if (!PLUS[S.plan]) { toast("Мои книги и меню — в тарифе с фишками"); return; }
+      const s = sheet(`<h3>Добавить «${esc(title)}» в мою книгу</h3>${S.menus.map(m => `<button data-m="${m.id}">${esc(m.title)} · ${m.items.length} блюд</button>`).join("")}<button class="pri" data-new="1">+ Новая книга</button>`);
+      s.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { const m = S.menus.find(x => x.id === b.dataset.m); if (!m.items.some(i => i.id === id)) m.items.push({ id, day: "d0" }); save(); s.remove(); toast("Добавлено в книгу «" + m.title + "»"); });
       s.querySelector("[data-new]").onclick = () => { const t = prompt("Название меню", "Новогодний стол 2027"); if (!t) return; S.menus.push({ id: Date.now().toString(36), title: t, items: [{ id, day: "d0" }] }); save(); s.remove(); toast("Меню «" + t + "» создано"); };
     };
     bar.append(bm, mn, nt, vid); paint();
